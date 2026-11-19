@@ -1,0 +1,107 @@
+import SwiftUI
+import AppKit
+
+struct AboutContentView: View {
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+    }
+    
+    private var buildNumber: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
+    }
+    
+    private var copyright: String {
+        let year = Calendar.current.component(.year, from: Date())
+        return "© \(year) Fossorial, Inc."
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                Form {
+                    Section {
+                        HStack {
+                            Text("Version")
+                                .font(.system(size: 13))
+                            Spacer()
+                            Text("\(appVersion) (\(buildNumber))")
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        HStack {
+                            Text("Copyright")
+                                .font(.system(size: 13))
+                            Spacer()
+                            Text(copyright)
+                                .font(.system(size: 13))
+                                .foregroundColor(.secondary)
+                        }
+                    } header: {
+                        Text("Application")
+                    }
+                    
+                    Section {
+                        Link(destination: URL(string: "https://docs.praxis.causq.com/")!) {
+                            HStack {
+                                Text("Documentation")
+                                    .font(.system(size: 13))
+                                Spacer()
+                                Image(systemName: "arrow.up.forward")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .foregroundColor(.accentColor)
+                        
+                        Link(destination: URL(string: "https://docs.praxis.causq.com/about/how-pangolin-works")!) {
+                            HStack {
+                                Text("How Praxis Works")
+                                    .font(.system(size: 13))
+                                Spacer()
+                                Image(systemName: "arrow.up.forward")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .foregroundColor(.accentColor)
+                    } header: {
+                        Text("Resources")
+                    }
+                    
+                    Section {
+                        Link(destination: URL(string: "https://praxis.net/tos")!) {
+                            HStack {
+                                Text("Terms of Service")
+                                    .font(.system(size: 13))
+                                Spacer()
+                                Image(systemName: "arrow.up.forward")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .foregroundColor(.accentColor)
+                        
+                        Link(destination: URL(string: "https://praxis.net/privacy")!) {
+                            HStack {
+                                Text("Privacy Policy")
+                                    .font(.system(size: 13))
+                                Spacer()
+                                Image(systemName: "arrow.up.forward")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        .foregroundColor(.accentColor)
+                    } header: {
+                        Text("Legal")
+                    }
+                }
+                .formStyle(.grouped)
+                .scrollContentBackground(.hidden)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+

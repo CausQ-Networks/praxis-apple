@@ -3,8 +3,8 @@
 .DEFAULT_GOAL := all
 
 # Variables
-GO_DIR := PangolinGo
-LIB_NAME := libpangolin
+GO_DIR := PraxisGo
+LIB_NAME := libpraxis
 ARCHIVE := $(GO_DIR)/$(LIB_NAME).a
 HEADER := $(GO_DIR)/$(LIB_NAME).h
 ARCHIVE_ARM64 := $(GO_DIR)/$(LIB_NAME)_arm64.a
@@ -25,7 +25,7 @@ GOROOT := $(BUILDDIR)/goroot
 GOROOT_ABS := $(CURDIR)/$(GOROOT)
 
 # Version of the embedded olm module, reported to the server separately from the app version
-OLM_VERSION := $(shell cd $(GO_DIR) && go list -m -f '{{.Version}}' github.com/fosrl/olm | sed 's/^v//')
+OLM_VERSION := $(shell cd $(GO_DIR) && go list -m -f '{{.Version}}' github.com/CausQ-Networks/praxis-olm | sed 's/^v//')
 GO_LDFLAGS := -X main.olmVersionOverride=$(OLM_VERSION)
 
 # Platform detection (can be overridden)

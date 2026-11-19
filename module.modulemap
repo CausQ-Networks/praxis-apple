@@ -1,5 +1,5 @@
-module PangolinGo {
-    header "PangolinGo/libpangolin.h"
+module PraxisGo {
+    header "PraxisGo/libpraxis.h"
     export *
 }
 

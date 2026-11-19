@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Reset Pangolin client settings (DNS, MTU, and related preferences).
-# Quit Pangolin before running this script.
+# Reset Praxis client settings (DNS, MTU, and related preferences).
+# Quit Praxis before running this script.
 
 set -e
 
-BUNDLE_ID="net.pangolin.Pangolin"
+BUNDLE_ID="com.causq.praxis"
 CONFIG_FILE="pangolin.json"
 
 DEFAULT_CONFIG='{
@@ -12,7 +12,7 @@ DEFAULT_CONFIG='{
   "dnsTunnelEnabled": false
 }'
 
-echo "Resetting Pangolin client settings (DNS, MTU, etc.)..."
+echo "Resetting Praxis client settings (DNS, MTU, etc.)..."
 
 write_default_config() {
   local config_path="$1"
@@ -36,10 +36,10 @@ clear_config_at() {
 }
 
 # Standard Application Support (non-sandboxed or when running from Xcode)
-clear_config_at "Application Support" "$HOME/Library/Application Support/Pangolin"
+clear_config_at "Application Support" "$HOME/Library/Application Support/Praxis"
 
 # Sandboxed app container (if present)
 clear_config_at "sandbox container" \
-  "$HOME/Library/Containers/$BUNDLE_ID/Data/Library/Application Support/Pangolin"
+  "$HOME/Library/Containers/$BUNDLE_ID/Data/Library/Application Support/Praxis"
 
-echo "Done. Restart Pangolin to pick up the reset settings."
+echo "Done. Restart Praxis to pick up the reset settings."

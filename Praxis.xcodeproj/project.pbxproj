@@ -1,0 +1,1345 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		9039ACD52ECFB01000FCA982 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 9039ACD42ECFB01000FCA982 /* Sparkle */; };
+		907A6C7D2F05AE620097F387 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90D1911A2EC9248100912E68 /* NetworkExtension.framework */; };
+		907A6C862F05AE620097F387 /* PacketTunneliOS.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 907A6C7C2F05AE620097F387 /* PacketTunneliOS.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		90D1973A2EC96BEC00912E68 /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 90D1911A2EC9248100912E68 /* NetworkExtension.framework */; };
+		90D197442EC96BEC00912E68 /* com.causq.praxis.PacketTunnel.systemextension in Embed System Extensions */ = {isa = PBXBuildFile; fileRef = 90D197392EC96BEC00912E68 /* com.causq.praxis.PacketTunnel.systemextension */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		90LA01012F1000010097F387 /* PraxisLiveActivity.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 90LA01002F1000010097F387 /* PraxisLiveActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		907A6C832F05AE620097F387 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 90BC22AC2EBC6C1D0072B44A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 907A6C7B2F05AE620097F387;
+			remoteInfo = PacketTunneliOS;
+		};
+		90D191C32EC9276900912E68 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 90BC22AC2EBC6C1D0072B44A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 90D197382EC96BEC00912E68;
+			remoteInfo = PacketTunnel;
+		};
+		90D191D22EC9293E00912E68 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 90BC22AC2EBC6C1D0072B44A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 90D197382EC96BEC00912E68;
+			remoteInfo = PacketTunnel;
+		};
+		90D191DC2EC9299600912E68 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 90BC22AC2EBC6C1D0072B44A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 90D197382EC96BEC00912E68;
+			remoteInfo = PacketTunnel;
+		};
+		90D192EC2EC92BEE00912E68 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 90BC22AC2EBC6C1D0072B44A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 90D197382EC96BEC00912E68;
+			remoteInfo = PacketTunnel;
+		};
+		90D197422EC96BEC00912E68 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 90BC22AC2EBC6C1D0072B44A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 90D197382EC96BEC00912E68;
+			remoteInfo = PacketTunnel;
+		};
+		90LA01022F1000010097F387 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 90BC22AC2EBC6C1D0072B44A /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 90LA01042F1000010097F387;
+			remoteInfo = PraxisLiveActivity;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		907A6C852F05AE620097F387 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				907A6C862F05AE620097F387 /* PacketTunneliOS.appex in Embed Foundation Extensions */,
+				90LA01012F1000010097F387 /* PraxisLiveActivity.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90D191372EC9260400912E68 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 12;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90D1919E2EC926F500912E68 /* Embed System Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(SYSTEM_EXTENSIONS_FOLDER_PATH)";
+			dstSubfolderSpec = 16;
+			files = (
+				90D197442EC96BEC00912E68 /* com.causq.praxis.PacketTunnel.systemextension in Embed System Extensions */,
+			);
+			name = "Embed System Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		907A6C5E2F05ACAF0097F387 /* PraxisiOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PraxisiOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		907A6C7C2F05AE620097F387 /* PacketTunneliOS.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PacketTunneliOS.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		907A6C932F05AFE60097F387 /* libpraxis.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpraxis.a; path = PraxisGo/libpraxis.a; sourceTree = "<group>"; };
+		90BC22B42EBC6C1D0072B44A /* Praxis.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Praxis.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		90D1911A2EC9248100912E68 /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
+		90D197392EC96BEC00912E68 /* com.causq.praxis.PacketTunnel.systemextension */ = {isa = PBXFileReference; explicitFileType = "wrapper.system-extension"; includeInIndex = 0; path = com.causq.praxis.PacketTunnel.systemextension; sourceTree = BUILT_PRODUCTS_DIR; };
+		90LA01002F1000010097F387 /* PraxisLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PraxisLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		901FF5E22EC7EE9900711D4E /* Exceptions for "Praxis" folder in "Praxis" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				iOS/Info.plist,
+				iOS/PraxisApp.swift,
+				iOS/UI/AboutView.swift,
+				iOS/UI/LoginView.swift,
+				iOS/UI/MainView.swift,
+				iOS/UI/OnboardingFlowView.swift,
+				iOS/UI/Preferences/DNSServerModalView.swift,
+				iOS/UI/Preferences/MTUModalView.swift,
+				iOS/UI/Preferences/PreferencesView.swift,
+				iOS/UI/StatusView.swift,
+				macOS/Info.plist,
+				Shared/LiveActivity/PraxisVPNAttributes.swift,
+				Shared/LiveActivity/TogglePraxisVPNControlIntent.swift,
+				Shared/LiveActivity/VPNLiveActivityManager.swift,
+				Shared/LiveActivity/VPNWidgetStatusStore.swift,
+			);
+			target = 90BC22B32EBC6C1D0072B44A /* Praxis */;
+		};
+		907A6C6C2F05ADBB0097F387 /* Exceptions for "Praxis" folder in "PraxisiOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Assets.xcassets,
+				iOS/PraxisApp.swift,
+				iOS/UI/AboutView.swift,
+				iOS/UI/LoginView.swift,
+				iOS/UI/MainView.swift,
+				iOS/UI/OnboardingFlowView.swift,
+				iOS/UI/Preferences/DNSServerModalView.swift,
+				iOS/UI/Preferences/MTUModalView.swift,
+				iOS/UI/Preferences/PreferencesView.swift,
+				iOS/UI/StatusView.swift,
+				"pangolin-app-icon.icon",
+				Shared/AccountManager.swift,
+				Shared/AlertManager.swift,
+				Shared/APIClient.swift,
+				Shared/AppIntents/AppDependencies.swift,
+				Shared/AppIntents/ConnectVPNIntent.swift,
+				Shared/AppIntents/DisconnectVPNIntent.swift,
+				Shared/AppIntents/GetVPNStatusIntent.swift,
+				Shared/AppIntents/PraxisAppShortcuts.swift,
+				Shared/AppIntents/PraxisIntentError.swift,
+				Shared/AppIntents/VPNStatusEntity.swift,
+				Shared/AuthManager.swift,
+				Shared/ConfigManager.swift,
+				Shared/DeviceInfo.swift,
+				Shared/FingerprintManager.swift,
+				Shared/IPAddressValidator.swift,
+				Shared/KeychainHelper.swift,
+				Shared/LiveActivity/PraxisVPNAttributes.swift,
+				Shared/LiveActivity/TogglePraxisVPNControlIntent.swift,
+				Shared/LiveActivity/VPNLiveActivityManager.swift,
+				Shared/LiveActivity/VPNWidgetStatusStore.swift,
+				Shared/Model/Models.swift,
+				Shared/OLMStatusManager.swift,
+				Shared/OnboardingStateManager.swift,
+				Shared/SecretManager.swift,
+				Shared/SocketManager.swift,
+				Shared/SocketPath.swift,
+				Shared/Tunnel/ActivateOnDemandOption.swift,
+				Shared/Tunnel/ActivateOnDemandViewModel.swift,
+				Shared/TunnelManager.swift,
+				Shared/UI/OnDemandActivationSection.swift,
+				Shared/UI/OnDemandSSIDEditView.swift,
+				Shared/UI/SiteStatusSheet.swift,
+			);
+			target = 907A6C5D2F05ACAF0097F387 /* PraxisiOS */;
+		};
+		907A6C912F05AF920097F387 /* Exceptions for "PacketTunnel" folder in "PacketTunneliOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Shared/GoLoggerBridge.m,
+				Shared/NetworkTransitionMonitor.swift,
+				Shared/PacketTunnelProvider.swift,
+				Shared/SocketPath.swift,
+				Shared/TunnelAdapter.swift,
+			);
+			target = 907A6C7B2F05AE620097F387 /* PacketTunneliOS */;
+		};
+		90D197482EC96BEC00912E68 /* Exceptions for "PacketTunnel" folder in "PacketTunnel" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				iOS/Info.plist,
+				macOS/Info.plist,
+			);
+			target = 90D197382EC96BEC00912E68 /* PacketTunnel */;
+		};
+		90LA010C2F1000010097F387 /* Exceptions for "PraxisLiveActivity" folder in "PraxisLiveActivity" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 90LA01042F1000010097F387 /* PraxisLiveActivity */;
+		};
+		90LA010D2F1000010097F387 /* Exceptions for "Praxis" folder in "PraxisLiveActivity" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Shared/LiveActivity/PraxisVPNAttributes.swift,
+				Shared/LiveActivity/TogglePraxisVPNControlIntent.swift,
+				Shared/LiveActivity/VPNWidgetStatusStore.swift,
+			);
+			target = 90LA01042F1000010097F387 /* PraxisLiveActivity */;
+		};
+		90PT010E2F1000020097F387 /* Exceptions for "Praxis" folder in "PacketTunneliOS" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Shared/LiveActivity/VPNWidgetStatusStore.swift,
+			);
+			target = 907A6C7B2F05AE620097F387 /* PacketTunneliOS */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		907A6C922F05AF920097F387 /* Exceptions for "PacketTunnel" folder in "Compile Sources" phase from "PacketTunneliOS" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = 907A6C782F05AE620097F387 /* Sources */;
+			membershipExceptions = (
+				Shared/GoLoggerBridge.h,
+				"Shared/PacketTunnel-Bridging-Header.h",
+				Shared/TunnelFileDescriptor.h,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		90BC22B62EBC6C1D0072B44A /* Praxis */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				901FF5E22EC7EE9900711D4E /* Exceptions for "Praxis" folder in "Praxis" target */,
+				907A6C6C2F05ADBB0097F387 /* Exceptions for "Praxis" folder in "PraxisiOS" target */,
+				90PT010E2F1000020097F387 /* Exceptions for "Praxis" folder in "PacketTunneliOS" target */,
+				90LA010D2F1000010097F387 /* Exceptions for "Praxis" folder in "PraxisLiveActivity" target */,
+			);
+			path = Praxis;
+			sourceTree = "<group>";
+		};
+		90D1973B2EC96BEC00912E68 /* PacketTunnel */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				90D197482EC96BEC00912E68 /* Exceptions for "PacketTunnel" folder in "PacketTunnel" target */,
+				907A6C912F05AF920097F387 /* Exceptions for "PacketTunnel" folder in "PacketTunneliOS" target */,
+				907A6C922F05AF920097F387 /* Exceptions for "PacketTunnel" folder in "Compile Sources" phase from "PacketTunneliOS" target */,
+			);
+			path = PacketTunnel;
+			sourceTree = "<group>";
+		};
+		90LA010B2F1000010097F387 /* PraxisLiveActivity */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				90LA010C2F1000010097F387 /* Exceptions for "PraxisLiveActivity" folder in "PraxisLiveActivity" target */,
+			);
+			path = PraxisLiveActivity;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		907A6C5B2F05ACAF0097F387 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		907A6C792F05AE620097F387 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				907A6C7D2F05AE620097F387 /* NetworkExtension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90BC22B12EBC6C1D0072B44A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9039ACD52ECFB01000FCA982 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90D197362EC96BEC00912E68 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				90D1973A2EC96BEC00912E68 /* NetworkExtension.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90LA01062F1000010097F387 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		90BC22AB2EBC6C1D0072B44A = {
+			isa = PBXGroup;
+			children = (
+				90BC22B62EBC6C1D0072B44A /* Praxis */,
+				90D1973B2EC96BEC00912E68 /* PacketTunnel */,
+				90LA010B2F1000010097F387 /* PraxisLiveActivity */,
+				90D191192EC9248100912E68 /* Frameworks */,
+				90BC22B52EBC6C1D0072B44A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		90BC22B52EBC6C1D0072B44A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				90BC22B42EBC6C1D0072B44A /* Praxis.app */,
+				90D197392EC96BEC00912E68 /* com.causq.praxis.PacketTunnel.systemextension */,
+				907A6C5E2F05ACAF0097F387 /* PraxisiOS.app */,
+				907A6C7C2F05AE620097F387 /* PacketTunneliOS.appex */,
+				90LA01002F1000010097F387 /* PraxisLiveActivity.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		90D191192EC9248100912E68 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				907A6C932F05AFE60097F387 /* libpraxis.a */,
+				90D1911A2EC9248100912E68 /* NetworkExtension.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		907A6C5D2F05ACAF0097F387 /* PraxisiOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 907A6C682F05ACB00097F387 /* Build configuration list for PBXNativeTarget "PraxisiOS" */;
+			buildPhases = (
+				907A6C5A2F05ACAF0097F387 /* Sources */,
+				907A6C5B2F05ACAF0097F387 /* Frameworks */,
+				907A6C5C2F05ACAF0097F387 /* Resources */,
+				907A6C852F05AE620097F387 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				907A6C842F05AE620097F387 /* PBXTargetDependency */,
+				90LA01032F1000010097F387 /* PBXTargetDependency */,
+			);
+			name = PraxisiOS;
+			packageProductDependencies = (
+			);
+			productName = PraxisiOS;
+			productReference = 907A6C5E2F05ACAF0097F387 /* PraxisiOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		907A6C7B2F05AE620097F387 /* PacketTunneliOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 907A6C872F05AE620097F387 /* Build configuration list for PBXNativeTarget "PacketTunneliOS" */;
+			buildPhases = (
+				907A6C782F05AE620097F387 /* Sources */,
+				907A6C792F05AE620097F387 /* Frameworks */,
+				907A6C7A2F05AE620097F387 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PacketTunneliOS;
+			packageProductDependencies = (
+			);
+			productName = PacketTunneliOS;
+			productReference = 907A6C7C2F05AE620097F387 /* PacketTunneliOS.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		90BC22B32EBC6C1D0072B44A /* Praxis */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 90BC22BF2EBC6C1F0072B44A /* Build configuration list for PBXNativeTarget "Praxis" */;
+			buildPhases = (
+				90BC22B02EBC6C1D0072B44A /* Sources */,
+				90BC22B12EBC6C1D0072B44A /* Frameworks */,
+				90BC22B22EBC6C1D0072B44A /* Resources */,
+				90D191372EC9260400912E68 /* Embed Foundation Extensions */,
+				90D1919E2EC926F500912E68 /* Embed System Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				90D191C42EC9276900912E68 /* PBXTargetDependency */,
+				90D191D32EC9293E00912E68 /* PBXTargetDependency */,
+				90D191DD2EC9299600912E68 /* PBXTargetDependency */,
+				90D192ED2EC92BEE00912E68 /* PBXTargetDependency */,
+				90D197432EC96BEC00912E68 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				90BC22B62EBC6C1D0072B44A /* Praxis */,
+			);
+			name = Praxis;
+			packageProductDependencies = (
+				9039ACD42ECFB01000FCA982 /* Sparkle */,
+			);
+			productName = Praxis;
+			productReference = 90BC22B42EBC6C1D0072B44A /* Praxis.app */;
+			productType = "com.apple.product-type.application";
+		};
+		90D197382EC96BEC00912E68 /* PacketTunnel */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 90D197452EC96BEC00912E68 /* Build configuration list for PBXNativeTarget "PacketTunnel" */;
+			buildPhases = (
+				90D197352EC96BEC00912E68 /* Sources */,
+				90D197362EC96BEC00912E68 /* Frameworks */,
+				90D197372EC96BEC00912E68 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				90D1973B2EC96BEC00912E68 /* PacketTunnel */,
+			);
+			name = PacketTunnel;
+			packageProductDependencies = (
+			);
+			productName = PacketTunnel;
+			productReference = 90D197392EC96BEC00912E68 /* com.causq.praxis.PacketTunnel.systemextension */;
+			productType = "com.apple.product-type.system-extension";
+		};
+		90LA01042F1000010097F387 /* PraxisLiveActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 90LA01082F1000010097F387 /* Build configuration list for PBXNativeTarget "PraxisLiveActivity" */;
+			buildPhases = (
+				90LA01052F1000010097F387 /* Sources */,
+				90LA01062F1000010097F387 /* Frameworks */,
+				90LA01072F1000010097F387 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				90LA010B2F1000010097F387 /* PraxisLiveActivity */,
+			);
+			name = PraxisLiveActivity;
+			packageProductDependencies = (
+			);
+			productName = PraxisLiveActivity;
+			productReference = 90LA01002F1000010097F387 /* PraxisLiveActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		90BC22AC2EBC6C1D0072B44A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2620;
+				LastUpgradeCheck = 2620;
+				TargetAttributes = {
+					907A6C5D2F05ACAF0097F387 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					907A6C7B2F05AE620097F387 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+					90BC22B32EBC6C1D0072B44A = {
+						CreatedOnToolsVersion = 26.1;
+					};
+					90D197382EC96BEC00912E68 = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
+					90LA01042F1000010097F387 = {
+						CreatedOnToolsVersion = 26.2;
+					};
+				};
+			};
+			buildConfigurationList = 90BC22AF2EBC6C1D0072B44A /* Build configuration list for PBXProject "Praxis" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 90BC22AB2EBC6C1D0072B44A;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				9039ACCF2ECFA69000FCA982 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 90BC22B52EBC6C1D0072B44A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				90BC22B32EBC6C1D0072B44A /* Praxis */,
+				90D197382EC96BEC00912E68 /* PacketTunnel */,
+				907A6C5D2F05ACAF0097F387 /* PraxisiOS */,
+				907A6C7B2F05AE620097F387 /* PacketTunneliOS */,
+				90LA01042F1000010097F387 /* PraxisLiveActivity */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		907A6C5C2F05ACAF0097F387 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		907A6C7A2F05AE620097F387 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90BC22B22EBC6C1D0072B44A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90D197372EC96BEC00912E68 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90LA01072F1000010097F387 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		907A6C5A2F05ACAF0097F387 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		907A6C782F05AE620097F387 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90BC22B02EBC6C1D0072B44A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90D197352EC96BEC00912E68 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		90LA01052F1000010097F387 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		907A6C842F05AE620097F387 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 907A6C7B2F05AE620097F387 /* PacketTunneliOS */;
+			targetProxy = 907A6C832F05AE620097F387 /* PBXContainerItemProxy */;
+		};
+		90D191C42EC9276900912E68 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 90D197382EC96BEC00912E68 /* PacketTunnel */;
+			targetProxy = 90D191C32EC9276900912E68 /* PBXContainerItemProxy */;
+		};
+		90D191D32EC9293E00912E68 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 90D197382EC96BEC00912E68 /* PacketTunnel */;
+			targetProxy = 90D191D22EC9293E00912E68 /* PBXContainerItemProxy */;
+		};
+		90D191DD2EC9299600912E68 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 90D197382EC96BEC00912E68 /* PacketTunnel */;
+			targetProxy = 90D191DC2EC9299600912E68 /* PBXContainerItemProxy */;
+		};
+		90D192ED2EC92BEE00912E68 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 90D197382EC96BEC00912E68 /* PacketTunnel */;
+			targetProxy = 90D192EC2EC92BEE00912E68 /* PBXContainerItemProxy */;
+		};
+		90D197432EC96BEC00912E68 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 90D197382EC96BEC00912E68 /* PacketTunnel */;
+			targetProxy = 90D197422EC96BEC00912E68 /* PBXContainerItemProxy */;
+		};
+		90LA01032F1000010097F387 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 90LA01042F1000010097F387 /* PraxisLiveActivity */;
+			targetProxy = 90LA01022F1000010097F387 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		907A6C662F05ACB00097F387 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "pangolin-app-icon";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = Praxis/iOS/Praxis.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 28;
+				DEVELOPMENT_TEAM = 4668XHFAHF;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Praxis/iOS/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Praxis;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.12.0;
+				OTHER_LDFLAGS = "$(SRCROOT)/PraxisGo/libpraxis_ios_arm64.a";
+				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=arm64]" = "$(SRCROOT)/PraxisGo/libpraxis_ios_sim_arm64.a";
+				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=x86_64]" = "$(SRCROOT)/PraxisGo/libpraxis_ios_sim_x86_64.a";
+				PRODUCT_BUNDLE_IDENTIFIER = com.causq.praxis.PraxisiOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		907A6C672F05ACB00097F387 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "pangolin-app-icon";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
+				CODE_SIGN_ENTITLEMENTS = Praxis/iOS/Praxis.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 28;
+				DEVELOPMENT_TEAM = 4668XHFAHF;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Praxis/iOS/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Praxis;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.12.0;
+				OTHER_LDFLAGS = "$(SRCROOT)/PraxisGo/libpraxis_ios_arm64.a";
+				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=arm64]" = "$(SRCROOT)/PraxisGo/libpraxis_ios_sim_arm64.a";
+				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=x86_64]" = "$(SRCROOT)/PraxisGo/libpraxis_ios_sim_x86_64.a";
+				PRODUCT_BUNDLE_IDENTIFIER = com.causq.praxis.PraxisiOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		907A6C882F05AE620097F387 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = PacketTunnel/iOS/PacketTunnel.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 28;
+				DEVELOPMENT_TEAM = 4668XHFAHF;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PacketTunnel/iOS/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PacketTunneliOS;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/PraxisGo",
+				);
+				MARKETING_VERSION = 0.12.0;
+				OTHER_LDFLAGS = "$(SRCROOT)/PraxisGo/libpraxis_ios_arm64.a";
+				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=arm64]" = "$(SRCROOT)/PraxisGo/libpraxis_ios_sim_arm64.a";
+				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=x86_64]" = "$(SRCROOT)/PraxisGo/libpraxis_ios_sim_x86_64.a";
+				PRODUCT_BUNDLE_IDENTIFIER = com.causq.praxis.PraxisiOS.PacketTunneliOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "PacketTunnel/Shared/PacketTunnel-Bridging-Header.h";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		907A6C892F05AE620097F387 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = PacketTunnel/iOS/PacketTunnel.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 28;
+				DEVELOPMENT_TEAM = 4668XHFAHF;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PacketTunnel/iOS/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PacketTunneliOS;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/PraxisGo",
+				);
+				MARKETING_VERSION = 0.12.0;
+				OTHER_LDFLAGS = "$(SRCROOT)/PraxisGo/libpraxis_ios_arm64.a";
+				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=arm64]" = "$(SRCROOT)/PraxisGo/libpraxis_ios_sim_arm64.a";
+				"OTHER_LDFLAGS[sdk=iphonesimulator*][arch=x86_64]" = "$(SRCROOT)/PraxisGo/libpraxis_ios_sim_x86_64.a";
+				PRODUCT_BUNDLE_IDENTIFIER = com.causq.praxis.PraxisiOS.PacketTunneliOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "PacketTunnel/Shared/PacketTunnel-Bridging-Header.h";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		90BC22BD2EBC6C1F0072B44A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 4668XHFAHF;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		90BC22BE2EBC6C1F0072B44A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 4668XHFAHF;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)";
+			};
+			name = Release;
+		};
+		90BC22C02EBC6C1F0072B44A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "pangolin-app-icon";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
+				CODE_SIGN_ENTITLEMENTS = Praxis/macOS/Praxis.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 27;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = 4668XHFAHF;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Praxis/macOS/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Praxis;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/PraxisGo",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.12.2;
+				OTHER_LDFLAGS = "-lpangolin";
+				PRODUCT_BUNDLE_IDENTIFIER = com.causq.praxis;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Praxis Profile 2";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Debug;
+		};
+		90BC22C12EBC6C1F0072B44A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "pangolin-app-icon";
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
+				CODE_SIGN_ENTITLEMENTS = Praxis/macOS/Praxis.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 27;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = 4668XHFAHF;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Praxis/macOS/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Praxis;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/PraxisGo",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.12.2;
+				OTHER_LDFLAGS = "-lpangolin";
+				PRODUCT_BUNDLE_IDENTIFIER = com.causq.praxis;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Praxis Profile 2";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = auto;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2,7";
+				XROS_DEPLOYMENT_TARGET = 26.1;
+			};
+			name = Release;
+		};
+		90D197462EC96BEC00912E68 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
+				CODE_SIGN_ENTITLEMENTS = PacketTunnel/macOS/PacketTunnel.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 27;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = 4668XHFAHF;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PacketTunnel/macOS/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PacketTunnel;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/PraxisGo",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.12.2;
+				OTHER_LDFLAGS = "-lpangolin";
+				PRODUCT_BUNDLE_IDENTIFIER = com.causq.praxis.PacketTunnel;
+				PRODUCT_NAME = "$(inherited)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Tunnel Packet Profile 2";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)";
+				SWIFT_OBJC_BRIDGING_HEADER = "PacketTunnel/Shared/PacketTunnel-Bridging-Header.h";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		90D197472EC96BEC00912E68 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION = YES;
+				CODE_SIGN_ENTITLEMENTS = PacketTunnel/macOS/PacketTunnel.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 27;
+				DEAD_CODE_STRIPPING = YES;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=macosx*]" = 4668XHFAHF;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PacketTunnel/macOS/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PacketTunnel;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/PraxisGo",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.12.2;
+				OTHER_LDFLAGS = "-lpangolin";
+				PRODUCT_BUNDLE_IDENTIFIER = com.causq.praxis.PacketTunnel;
+				PRODUCT_NAME = "$(inherited)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "Tunnel Packet Profile 2";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INCLUDE_PATHS = "$(SRCROOT)";
+				SWIFT_OBJC_BRIDGING_HEADER = "PacketTunnel/Shared/PacketTunnel-Bridging-Header.h";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		90LA01092F1000010097F387 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = PraxisLiveActivity/PraxisLiveActivity.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 28;
+				DEVELOPMENT_TEAM = 4668XHFAHF;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PraxisLiveActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Praxis;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.12.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.causq.praxis.PraxisiOS.PraxisLiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "WIDGET_EXTENSION $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		90LA010A2F1000010097F387 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = PraxisLiveActivity/PraxisLiveActivity.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 28;
+				DEVELOPMENT_TEAM = 4668XHFAHF;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = PraxisLiveActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Praxis;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 0.12.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.causq.praxis.PraxisiOS.PraxisLiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "WIDGET_EXTENSION $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		907A6C682F05ACB00097F387 /* Build configuration list for PBXNativeTarget "PraxisiOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				907A6C662F05ACB00097F387 /* Debug */,
+				907A6C672F05ACB00097F387 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		907A6C872F05AE620097F387 /* Build configuration list for PBXNativeTarget "PacketTunneliOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				907A6C882F05AE620097F387 /* Debug */,
+				907A6C892F05AE620097F387 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		90BC22AF2EBC6C1D0072B44A /* Build configuration list for PBXProject "Praxis" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				90BC22BD2EBC6C1F0072B44A /* Debug */,
+				90BC22BE2EBC6C1F0072B44A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		90BC22BF2EBC6C1F0072B44A /* Build configuration list for PBXNativeTarget "Praxis" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				90BC22C02EBC6C1F0072B44A /* Debug */,
+				90BC22C12EBC6C1F0072B44A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		90D197452EC96BEC00912E68 /* Build configuration list for PBXNativeTarget "PacketTunnel" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				90D197462EC96BEC00912E68 /* Debug */,
+				90D197472EC96BEC00912E68 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		90LA01082F1000010097F387 /* Build configuration list for PBXNativeTarget "PraxisLiveActivity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				90LA01092F1000010097F387 /* Debug */,
+				90LA010A2F1000010097F387 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9039ACCF2ECFA69000FCA982 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.8.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9039ACD42ECFB01000FCA982 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9039ACCF2ECFA69000FCA982 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 90BC22AC2EBC6C1D0072B44A /* Project object */;
+}

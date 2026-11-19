@@ -1,5 +1,5 @@
 {
-  description = "Official Pangolin macOS VPN client";
+  description = "Official Praxis macOS VPN client";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
@@ -17,7 +17,7 @@
           packages = let
             go = pkgs.go.overrideAttrs (o: {
               patches = [
-                ./PangolinGo/goruntime-boottime-over-monotonic.diff
+                ./PraxisGo/goruntime-boottime-over-monotonic.diff
               ];
             });
           in [

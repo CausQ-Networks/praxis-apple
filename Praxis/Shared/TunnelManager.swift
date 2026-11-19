@@ -1,0 +1,1607 @@
+import Combine
+import Foundation
+import NetworkExtension
+import os.log
+
+#if os(iOS)
+    import WidgetKit
+#endif
+
+#if os(macOS)
+    import SystemExtensions
+#endif
+
+class TunnelManager: NSObject, ObservableObject {
+    @Published var isNEConnected = false
+    @Published var status: TunnelStatus = .disconnected
+    /// Mirrors WireGuard `isActivateOnDemandEnabled` (isOnDemandEnabled && isEnabled).
+    @Published var isOnDemandEnabled = false
+    /// True when the NE profile has on-demand rules configured (prefs), whether or not engaged.
+    @Published var hasOnDemandRules = false
+    /// Set when a connect attempt fails (socket error, missing config, startVPNTunnel, etc.).
+    /// Cleared at the start of `connect()`. App Intents read this after `waitUntilSettled()`.
+    private(set) var lastConnectionError: String?
+    /// OLM failure on the status socket while on-demand leaves the tunnel running.
+    /// Cleared when registration succeeds, or when the user connects or disconnects.
+    @Published var connectionErrorMessage: String?
+
+    // Exit nodes (gateway-mode site resources). The list is for `gatewayResourcesOrgId` only;
+    // use `availableExitNodes` so a stale list from another org is never shown.
+    @Published private(set) var gatewayResources: [SiteResource] = []
+    @Published private(set) var gatewayResourcesOrgId: String?
+    /// The gateway site resource olm reports it is routing through while connected.
+    @Published private(set) var olmGatewayResourceId: Int?
+    /// True once the current connection's first socket status poll has been processed, so
+    /// `olmGatewayResourceId` is known to be a real answer from olm rather than just not yet
+    /// set. Reset at the start of each connection attempt. Published on its own since
+    /// `olmGatewayResourceId` may stay nil (no exit node) across the flip, which wouldn't
+    /// otherwise notify observers.
+    @Published private var hasOlmGatewayStatus = false
+    /// Bumped every time something authoritative updates `olmGatewayResourceId` (a live
+    /// select/disable call, or a fresh connection's polling reset). A socket poll captures
+    /// this before its request and discards its answer if the count has moved on by the
+    /// time it returns, so a poll that was already in flight when the user made a live
+    /// change can't land afterward and stomp the newer value back to the old one.
+    private var gatewayUpdateGeneration = 0
+    /// Resource ID of the exit node saved on the active account, applied on the next connect.
+    @Published private(set) var savedExitNodeResourceId: Int?
+
+    private var tunnelManager: NETunnelProviderManager?
+    #if os(iOS)
+        private let bundleIdentifier = "com.causq.praxis.PraxisiOS.PacketTunneliOS"
+    #else
+        private let bundleIdentifier = "com.causq.praxis.PacketTunnel"
+    #endif
+    private var statusObserver: NSObjectProtocol?
+    #if os(macOS)
+        private var systemExtensionRequest: OSSystemExtensionRequest?
+        private var systemExtensionInstallContinuation: CheckedContinuation<Bool, Error>?
+    #endif
+
+    // Version tracking for extension updates
+    private let extensionVersionKey = "com.causq.praxis.PacketTunnel.lastKnownVersion"
+
+    private let configManager: ConfigManager
+    private let accountManager: AccountManager
+    private let secretManager: SecretManager
+    private let authManager: AuthManager
+    private let socketManager: SocketManager
+
+    // Separate manager for OLM status to avoid menu bar re-renders
+    let olmStatusManager: OLMStatusManager
+
+    // Fingerprint/posture checking poller
+    let fingerprintManager: FingerprintManager
+
+    private let logger: OSLog = {
+        let subsystem = Bundle.main.bundleIdentifier ?? "com.causq.praxis"
+        return OSLog(subsystem: subsystem, category: "TunnelManager")
+    }()
+
+    // Socket polling
+    private var socketPollingTask: Task<Void, Never>?
+    private let socketPollInterval: TimeInterval = 1.0
+    private var isPollingSocket = false
+
+    // Flag to prevent duplicate error alerts
+    private nonisolated(unsafe) var hasShownErrorAlert = false
+
+    // Cache last known values to avoid unnecessary updates
+    private nonisolated(unsafe) var lastTunnelStatus: TunnelStatus?
+    private nonisolated(unsafe) var lastIsNEConnected: Bool = false
+
+    #if os(iOS)
+        private var liveActivityCancellable: AnyCancellable?
+        private var widgetMetadataCancellables = Set<AnyCancellable>()
+    #endif
+
+    /// Socket error codes that indicate session expired; re-auth button should be shown.
+    private static let sessionExpiredSocketErrorCodes: Set<String> = [
+        "UNAUTHORIZED",
+        "SESSION_EXPIRED",
+        "ORG_ACCESS_POLICY_SESSION_EXPIRED",
+        "INVALID_USER_SESSION",
+        "USER_ID_NOT_FOUND",
+    ]
+
+    init(
+        configManager: ConfigManager,
+        accountManager: AccountManager,
+        secretManager: SecretManager,
+        authManager: AuthManager,
+    ) {
+        self.configManager = configManager
+        self.accountManager = accountManager
+        self.secretManager = secretManager
+        self.authManager = authManager
+        self.socketManager = SocketManager()
+        self.olmStatusManager = OLMStatusManager(socketManager: self.socketManager)
+        self.fingerprintManager = FingerprintManager()
+        #if os(macOS)
+            self.fingerprintManager.startCacheRefresh(interval: 3 * 3600)
+        #endif
+        self.savedExitNodeResourceId = Self.savedExitNode(
+            accountManager: accountManager, orgId: accountManager.activeAccount?.orgId)
+        super.init()
+
+        // Observe VPN status changes
+        statusObserver = NotificationCenter.default.addObserver(
+            forName: .NEVPNStatusDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                await self?.updateConnectionStatus()
+            }
+        }
+
+        #if os(iOS)
+            liveActivityCancellable = $status
+                .removeDuplicates()
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] newStatus in
+                    self?.syncLiveActivity(status: newStatus)
+                    self?.syncWidgetStatus(status: newStatus)
+                }
+
+            // On-demand engage can leave TunnelStatus at .disconnected; still refresh widget.
+            $isOnDemandEnabled
+                .combineLatest($hasOnDemandRules)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _, _ in
+                    guard let self else { return }
+                    self.syncWidgetStatus(status: self.status)
+                }
+                .store(in: &widgetMetadataCancellables)
+
+            // Org / account can change while tunnel status stays the same; refresh
+            // the widget so cleared selections don't leave stale labels.
+            authManager.$currentOrg
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    guard let self else { return }
+                    self.syncWidgetStatus(status: self.status)
+                }
+                .store(in: &widgetMetadataCancellables)
+
+            authManager.$isAuthenticated
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    guard let self else { return }
+                    self.syncWidgetStatus(status: self.status)
+                }
+                .store(in: &widgetMetadataCancellables)
+
+            accountManager.$store
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    guard let self else { return }
+                    self.syncWidgetStatus(status: self.status)
+                }
+                .store(in: &widgetMetadataCancellables)
+        #endif
+
+        Task {
+            #if os(macOS)
+                // Defer system extension and VPN setup until the user completes onboarding
+                // (or taps Connect). Only update status if a configuration already exists,
+                // to avoid showing system prompts on launch.
+                if await hasRegisteredExtension() {
+                    await refreshInstalledSystemExtensionOnLaunch()
+                    await ensureExtensionRegistered()
+                    await updateConnectionStatus()
+                } else {
+                    await MainActor.run {
+                        self.isNEConnected = false
+                        self.status = .disconnected
+                    }
+                }
+            #else
+                // On iOS, defer installing/registering the VPN configuration until
+                // the user explicitly requests it (e.g. from onboarding or connect).
+                // Here we only update any cached status if a configuration already
+                // exists, to avoid triggering the system VPN prompt on first launch.
+                if await hasRegisteredExtension() {
+                    await ensureExtensionRegistered()
+                    await updateConnectionStatus()
+                } else {
+                    await MainActor.run {
+                        self.isNEConnected = false
+                        self.status = .disconnected
+                    }
+                }
+                await MainActor.run {
+                    self.reconcileLiveActivityOnLaunch()
+                    self.syncWidgetStatus(status: self.status)
+                }
+            #endif
+        }
+    }
+
+    deinit {
+        if let observer = statusObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
+        stopSocketPolling()
+    }
+
+    /// Re-reads NE VPN + on-demand state and pushes the widget snapshot.
+    /// Call when the app becomes active so background on-demand changes are reflected.
+    func updateConnectionStatusForWidget() async {
+        await updateConnectionStatus()
+        #if os(iOS)
+        await MainActor.run {
+            syncWidgetStatus(status: status)
+        }
+        #endif
+    }
+
+    @MainActor
+    private func updateConnectionStatus() async {
+        guard let manager = tunnelManager else {
+            isNEConnected = false
+            status = .disconnected
+            isOnDemandEnabled = false
+            hasOnDemandRules = false
+            stopSocketPolling()
+            resetLiveGatewayState()
+            return
+        }
+
+        syncOnDemandState(from: manager)
+
+        let vpnStatus = manager.connection.status
+
+        // Simple state handling:
+        // - disconnected: Network extension is stopped
+        // - starting: User clicked connect, gathering fingerprint (preserved during this phase)
+        // - registering: Extension is running, polling socket
+        // - connected: Socket shows registered=true and connected=true
+        switch vpnStatus {
+        case .disconnected:
+            // If we're in starting state, preserve it (fingerprint gathering in progress)
+            if status != .starting {
+                status = .disconnected
+                isNEConnected = false
+                stopSocketPolling()
+                resetLiveGatewayState()
+            }
+        case .connecting:
+            // Extension is starting, transition to registering
+            status = .registering
+            isNEConnected = true  // Extension is running, show disconnect button
+            stopSocketPolling()
+            // Must happen in the same main-actor turn as isNEConnected flipping true, or
+            // activeExitNodeId would briefly read the previous session's gateway.
+            resetLiveGatewayState()
+        case .connected:
+            // Extension is connected, start polling socket
+            isNEConnected = true
+            if !isPollingSocket && !hasShownErrorAlert {
+                startSocketPolling()
+                status = .registering
+            } else if hasShownErrorAlert, status == .registering {
+                // A previous OLM failure already ended registration. Don't leave the
+                // UI in .registering, which keeps Log In and org controls disabled.
+                status = .disconnected
+            }
+        case .reasserting:
+            // Extension is reasserting, keep current state
+            break
+        case .disconnecting:
+            // Extension is disconnecting, show disconnected
+            status = .disconnected
+            isNEConnected = false
+            stopSocketPolling()
+            resetLiveGatewayState()
+        default:
+            // For any other status, show disconnected
+            status = .disconnected
+            isNEConnected = false
+            stopSocketPolling()
+            resetLiveGatewayState()
+        }
+
+        os_log(
+            "VPN Status changed: %{public}@ (VPN status: %d, onDemand=%{public}d rules=%{public}d)",
+            log: logger, type: .debug,
+            status.displayText, vpnStatus.rawValue,
+            isOnDemandEnabled ? 1 : 0, hasOnDemandRules ? 1 : 0)
+    }
+
+    /// WireGuard-equivalent: engaged = isOnDemandEnabled && isEnabled; has rules = non-empty onDemandRules.
+    @MainActor
+    private func syncOnDemandState(from manager: NETunnelProviderManager) {
+        isOnDemandEnabled = manager.isOnDemandEnabled && manager.isEnabled
+        hasOnDemandRules = !(manager.onDemandRules ?? []).isEmpty
+    }
+
+    #if os(macOS)
+        /// Installs or activates the Packet Tunnel system extension. Returns true on success.
+        func installSystemExtensionIfNeeded() async -> Bool {
+            os_log("Installing/activating system extension...", log: logger, type: .info)
+
+            await MainActor.run {
+                status = .registering
+            }
+
+            let manager = OSSystemExtensionManager.shared
+            // Always use activationRequest - the system will automatically detect if replacement is needed
+            // and call the delegate method actionForReplacingExtension
+            let request = OSSystemExtensionRequest.activationRequest(
+                forExtensionWithIdentifier: bundleIdentifier,
+                queue: .main
+            )
+
+            request.delegate = self
+
+            do {
+                let result = try await withCheckedThrowingContinuation {
+                    (continuation: CheckedContinuation<Bool, Error>) in
+                    systemExtensionInstallContinuation = continuation
+                    systemExtensionRequest = request
+                    manager.submitRequest(request)
+                }
+
+                return result
+            } catch {
+                os_log(
+                    "Failed to install system extension: %{public}@", log: logger, type: .error,
+                    error.localizedDescription)
+                await MainActor.run {
+                    status = .disconnected
+                }
+                return false
+            }
+        }
+    #endif
+
+    // MARK: - Extension Version Management
+
+    /// Gets the current version of the PacketTunnel extension from its bundle
+    /// This is a public method for displaying the version in the UI
+    func getExtensionVersion() -> String? {
+        return getCurrentExtensionVersion()
+    }
+
+    /// Gets the current version of the PacketTunnel extension from its bundle
+    private func getCurrentExtensionVersion() -> String? {
+        // The PacketTunnel extension bundle is embedded in the main app bundle
+        // Search for it by bundle identifier in the PlugIns directory
+        let mainBundle = Bundle.main.bundleURL
+
+        // Look for the extension bundle in the app's PlugIns directory
+        // On macOS: Contents/PlugIns, on iOS: PlugIns
+        #if os(iOS)
+            let pluginsURL = mainBundle.appendingPathComponent("PlugIns", isDirectory: true)
+        #else
+            let pluginsURL = mainBundle.appendingPathComponent(
+                "Contents/PlugIns", isDirectory: true)
+        #endif
+
+        // Check if PlugIns directory exists
+        guard FileManager.default.fileExists(atPath: pluginsURL.path) else {
+            os_log(
+                "PlugIns directory does not exist at %{public}@ (this may be normal during early initialization)",
+                log: logger, type: .debug, pluginsURL.path)
+            return nil
+        }
+
+        // Search for the extension bundle by enumerating PlugIns directory
+        guard
+            let pluginContents = try? FileManager.default.contentsOfDirectory(
+                at: pluginsURL, includingPropertiesForKeys: nil, options: [])
+        else {
+            os_log("Could not enumerate PlugIns directory", log: logger, type: .debug)
+            return nil
+        }
+
+        // Find the extension bundle by checking its bundle identifier
+        for pluginURL in pluginContents {
+            guard pluginURL.pathExtension == "appex",
+                let extensionBundle = Bundle(url: pluginURL),
+                let pluginBundleId = extensionBundle.bundleIdentifier,
+                pluginBundleId == bundleIdentifier
+            else {
+                continue
+            }
+
+            // Found the extension bundle, get its version
+            guard
+                let version = extensionBundle.object(forInfoDictionaryKey: "CFBundleVersion")
+                    as? String
+            else {
+                os_log(
+                    "Could not get CFBundleVersion from extension bundle at %{public}@",
+                    log: logger, type: .error, pluginURL.path)
+                return nil
+            }
+
+            os_log(
+                "Found extension bundle at %{public}@ with version %{public}@", log: logger,
+                type: .debug, pluginURL.path, version)
+            return version
+        }
+
+        os_log(
+            "Could not find PacketTunnel extension bundle with identifier %{public}@ in PlugIns directory",
+            log: logger, type: .debug, bundleIdentifier)
+        return nil
+    }
+
+    /// Gets the last known version of the extension from UserDefaults
+    private func getLastKnownExtensionVersion() -> String? {
+        return UserDefaults.standard.string(forKey: extensionVersionKey)
+    }
+
+    /// Stores the extension version in UserDefaults
+    private func setLastKnownExtensionVersion(_ version: String) {
+        UserDefaults.standard.set(version, forKey: extensionVersionKey)
+    }
+
+    #if os(macOS)
+        /// If a profile is already installed, submit activation on launch so macOS can
+        /// update/replace the installed system extension if needed.
+        private func refreshInstalledSystemExtensionOnLaunch() async {
+            os_log(
+                "Existing VPN profile detected on launch; triggering system extension activation/update check",
+                log: logger, type: .info)
+            let refreshed = await installSystemExtensionIfNeeded()
+            if !refreshed {
+                os_log(
+                    "System extension refresh on launch did not complete successfully",
+                    log: logger, type: .error)
+            }
+        }
+    #endif
+
+    // MARK: - VPN Profile / Extension Helpers
+
+    /// Checks whether a NETunnelProviderManager for the Praxis packet tunnel
+    /// extension already exists in the user's VPN configurations.
+    func isVPNProfileInstalled() async -> Bool {
+        await hasRegisteredExtension()
+    }
+
+    /// Ensures that the VPN profile is installed, prompting the user to allow
+    /// the configuration if needed.
+    ///
+    /// Returns `true` if a profile exists after this call (either pre-existing
+    /// or newly created), and `false` if creation failed.
+    func ensureVPNProfileInstalled() async -> Bool {
+        // Fast path: configuration already exists.
+        if await hasRegisteredExtension() {
+            return true
+        }
+
+        // Otherwise, attempt to register the extension, which will trigger
+        // the iOS VPN configuration prompt as needed.
+        await ensureExtensionRegistered()
+
+        // Re-check after attempting registration.
+        return await hasRegisteredExtension()
+    }
+
+    /// Internal helper that inspects existing NETunnelProviderManager instances
+    /// without creating or modifying any configuration.
+    private func hasRegisteredExtension() async -> Bool {
+        let managers = try? await NETunnelProviderManager.loadAllFromPreferences()
+        let existingManager = managers?.first { manager in
+            guard let protocolConfig = manager.protocolConfiguration as? NETunnelProviderProtocol
+            else {
+                return false
+            }
+            return protocolConfig.providerBundleIdentifier == bundleIdentifier
+        }
+
+        return existingManager != nil
+    }
+
+    func ensureExtensionRegistered() async {
+        if let managers = try? await NETunnelProviderManager.loadAllFromPreferences(),
+            let existingManager = managers.first(where: { manager in
+                guard
+                    let protocolConfig = manager.protocolConfiguration
+                        as? NETunnelProviderProtocol
+                else {
+                    return false
+                }
+                return protocolConfig.providerBundleIdentifier == bundleIdentifier
+            })
+        {
+            // Keep the manager we already have while its profile still exists. A
+            // freshly loaded instance can report its connection as down until
+            // NetworkExtension catches up, which stops socket polling and shows a
+            // connected tunnel as registering again.
+            var candidates = [existingManager]
+            if let current = tunnelManager, current !== existingManager {
+                candidates.insert(current, at: 0)
+            }
+
+            // Reload to get the actual manager instance. If the kept manager's
+            // profile was replaced, loading it fails and the new one is used.
+            for manager in candidates {
+                do {
+                    try await manager.loadFromPreferences()
+                    await MainActor.run {
+                        tunnelManager = manager
+                    }
+                    await updateConnectionStatus()
+                    return
+                } catch {
+                    os_log(
+                        "Error loading manager: %{public}@", log: logger, type: .error,
+                        error.localizedDescription)
+                }
+            }
+        } else {
+            // Register the extension
+            await registerExtension()
+        }
+    }
+
+    private func registerExtension() async {
+        let manager = NETunnelProviderManager()
+
+        // Configure the tunnel protocol
+        let protocolConfiguration = NETunnelProviderProtocol()
+        protocolConfiguration.providerBundleIdentifier = bundleIdentifier
+        protocolConfiguration.serverAddress = "Praxis"  // Use a descriptive name, not bundle ID
+
+        manager.protocolConfiguration = protocolConfiguration
+        manager.localizedDescription = "Praxis"
+        manager.isEnabled = true
+
+        do {
+            try await manager.saveToPreferences()
+            // IMPORTANT: Reload after saving to get the actual manager instance
+            try await manager.loadFromPreferences()
+
+            await MainActor.run {
+                tunnelManager = manager
+            }
+            await updateConnectionStatus()
+        } catch {
+            os_log(
+                "Error registering extension: %{public}@", log: logger, type: .error,
+                error.localizedDescription)
+            await MainActor.run {
+                status = .disconnected
+            }
+        }
+    }
+
+    func connect() async {
+        // Clear error alert flag for new connection attempt
+        hasShownErrorAlert = false
+
+        // WireGuard: with on-demand rules, Connect only engages isOnDemandEnabled (no
+        // startVPNTunnel). Skip synthetic .starting so the toggle goes yellow immediately
+        // when the current path does not match the rules.
+        let onDemandOption = configManager.onDemandOptionFromConfig()
+        let engageOnDemandOnly = onDemandOption != .off
+
+        await MainActor.run {
+            lastConnectionError = nil
+            connectionErrorMessage = nil
+            if !engageOnDemandOnly {
+                status = .starting
+            }
+        }
+
+        // Check if tunnel is already running by querying the socket
+        if await socketManager.isRunning() {
+            os_log("Tunnel is already running (socket responds)", log: logger, type: .info)
+            await MainActor.run {
+                status = .connected
+                isNEConnected = true
+                AlertManager.shared.showAlertDialog(
+                    title: "Tunnel Already Running",
+                    message:
+                        "The tunnel is already running. Please disconnect it before connecting again."
+                )
+            }
+            return
+        }
+
+        // Require an organization to be selected before connecting
+        guard authManager.currentOrg != nil else {
+            os_log("No organization selected, aborting connection", log: logger, type: .error)
+            failConnect(
+                message: "Please select an organization before connecting.",
+                alertTitle: "No Organization Selected"
+            )
+            return
+        }
+
+        guard accountManager.activeAccount != nil else {
+            os_log("No account selected, aborting connection", log: logger, type: .error)
+            failConnect(
+                message: "Please select one or re-login.",
+                alertTitle: "No Account Selected"
+            )
+            return
+        }
+
+        // Ensure OLM credentials exist before connecting
+        if let userId = authManager.currentUser?.userId {
+            await authManager.ensureOlmCredentials(userId: userId)
+        }
+
+        // Ensure extension exists before connecting
+        await ensureExtensionRegistered()
+
+        guard let manager = tunnelManager else {
+            failConnect(message: "VPN configuration isn't ready.")
+            return
+        }
+
+        // Ensure manager is enabled
+        if !manager.isEnabled {
+            manager.isEnabled = true
+            do {
+                try await manager.saveToPreferences()
+                try await manager.loadFromPreferences()
+            } catch {
+                os_log(
+                    "Error enabling manager: %{public}@", log: logger, type: .error,
+                    error.localizedDescription)
+            }
+        }
+
+        // Note: Go startTunnel is called from within the PacketTunnelProvider system extension
+        // when the tunnel starts, not from the app side
+
+        guard let tunnelOptions = await buildTunnelOptions() else {
+            failConnect(message: "Unable to gather tunnel configuration.")
+            return
+        }
+
+        do {
+            try persistTunnelStartConfig(tunnelOptions, on: manager)
+
+            onDemandOption.apply(on: manager)
+
+            if engageOnDemandOnly {
+                // WireGuard setOnDemandEnabled(true): engage only; OS starts if rules match.
+                manager.isEnabled = true
+                manager.isOnDemandEnabled = true
+                try await manager.saveToPreferences()
+                try await manager.loadFromPreferences()
+                os_log(
+                    "Connect: on-demand engaged (isOnDemandEnabled=1); OS starts if rules match",
+                    log: logger, type: .info)
+                await updateConnectionStatus()
+            } else {
+                manager.isOnDemandEnabled = false
+                try await manager.saveToPreferences()
+                try await manager.loadFromPreferences()
+
+                var startOptions = tunnelOptions
+                if let json = encodeTunnelOptionsAsJSONString(tunnelOptions) {
+                    startOptions[Self.tunnelStartConfigJSONKey] = json as NSString
+                }
+                try manager.connection.startVPNTunnel(options: startOptions)
+                await updateConnectionStatus()
+            }
+        } catch {
+            os_log(
+                "Error starting tunnel: %{public}@", log: logger, type: .error,
+                error.localizedDescription)
+            failConnect(message: error.localizedDescription)
+        }
+    }
+
+    /// Builds the options dictionary passed to the packet tunnel (and stored on
+    /// `providerConfiguration` for on-demand starts). Returns nil when required
+    /// account/org/fingerprint data is missing.
+    private func buildTunnelOptions() async -> [String: NSObject]? {
+        guard let currentOrg = authManager.currentOrg else {
+            return nil
+        }
+        guard let activeAccount = accountManager.activeAccount else {
+            return nil
+        }
+
+        var tunnelOptions: [String: NSObject] = [:]
+
+        tunnelOptions["endpoint"] = activeAccount.hostname as NSString
+
+        let userId = authManager.currentUser?.userId ?? activeAccount.userId
+        if let olmId = secretManager.getOlmId(userId: userId) {
+            tunnelOptions["id"] = olmId as NSString
+        }
+        if let olmSecret = secretManager.getOlmSecret(userId: userId) {
+            tunnelOptions["secret"] = olmSecret as NSString
+        }
+        if let userToken = secretManager.getSessionToken(userId: userId) {
+            tunnelOptions["userToken"] = userToken as NSString
+        }
+
+        // Required for on-demand starts; refuse incomplete configs.
+        guard tunnelOptions["id"] != nil, tunnelOptions["secret"] != nil,
+            tunnelOptions["userToken"] != nil
+        else {
+            os_log(
+                "buildTunnelOptions: missing OLM credentials or session token",
+                log: logger, type: .error)
+            return nil
+        }
+
+        tunnelOptions["orgId"] = currentOrg.orgId as NSString
+
+        // Re-apply the saved exit node, if any, as the tunnel comes up
+        if let gateway = await resolveSavedExitNode(orgId: currentOrg.orgId) {
+            tunnelOptions["gatewaySiteResourceId"] = NSNumber(value: gateway.siteResourceId)
+            tunnelOptions["gatewaySiteIds"] = gateway.siteIds.map { NSNumber(value: $0) } as NSArray
+        }
+
+        tunnelOptions["mtu"] = NSNumber(value: configManager.getTunnelMTU())
+        tunnelOptions["holepunch"] = NSNumber(value: true)
+        tunnelOptions["pingIntervalSeconds"] = NSNumber(value: 5)
+        tunnelOptions["pingTimeoutSeconds"] = NSNumber(value: 5)
+
+        tunnelOptions["overrideDNS"] = NSNumber(value: configManager.getDNSOverrideEnabled())
+        tunnelOptions["tunnelDNS"] = NSNumber(value: configManager.getDNSTunnelEnabled())
+        tunnelOptions["exitNodeTakesPrecedence"] = NSNumber(value: configManager.getExitNodeTakesPrecedence())
+
+        var upstreamDNSServers: [String] = []
+        let primaryDNS = configManager.getPrimaryDNSServer()
+        if !primaryDNS.isEmpty {
+            upstreamDNSServers.append("\(primaryDNS):53")
+        }
+        let secondaryDNS = configManager.getSecondaryDNSServer()
+        if !secondaryDNS.isEmpty {
+            upstreamDNSServers.append("\(secondaryDNS):53")
+        }
+        tunnelOptions["upstreamDNS"] = upstreamDNSServers as NSArray
+        tunnelOptions["matchDomains"] = configManager.getMatchDomains() as NSArray
+
+        #if os(macOS)
+            var fingerprintPosturePair = await fingerprintManager.cachedFingerprintAndPostures()
+            if fingerprintPosturePair != nil {
+                os_log(
+                    "Tunnel connect: using cached fingerprint/posture", log: logger, type: .info)
+            } else {
+                os_log(
+                    "Tunnel connect: cache miss; gathering fingerprint/posture before connect",
+                    log: logger, type: .info)
+                await fingerprintManager.refreshCache()
+                fingerprintPosturePair = await fingerprintManager.cachedFingerprintAndPostures()
+            }
+            guard let (fingerprint, postures) = fingerprintPosturePair else {
+                os_log(
+                    "Missing fingerprint/posture cache after refresh", log: logger, type: .error)
+                return nil
+            }
+        #else
+            os_log(
+                "Tunnel connect: gathering fingerprint/posture on each connect (iOS, no cache)",
+                log: logger, type: .info)
+            let fingerprint = await fingerprintManager.gatherFingerprintInfo()
+            let postures = await fingerprintManager.gatherPostureChecks()
+        #endif
+
+        if let fingerprintData = try? JSONEncoder().encode(fingerprint),
+            let fingerprintDict = try? JSONSerialization.jsonObject(with: fingerprintData)
+                as? [String: Any]
+        {
+            tunnelOptions["fingerprint"] = fingerprintDict as NSDictionary
+        }
+
+        if let posturesData = try? JSONEncoder().encode(postures),
+            let posturesDict = try? JSONSerialization.jsonObject(with: posturesData)
+                as? [String: Any]
+        {
+            tunnelOptions["postures"] = posturesDict as NSDictionary
+        }
+
+        return tunnelOptions
+    }
+
+    /// Key for the JSON start-config blob in `NETunnelProviderProtocol.providerConfiguration`.
+    static let tunnelStartConfigJSONKey = "tunnelStartConfigJSON"
+
+    private func encodeTunnelOptionsAsJSONString(_ options: [String: NSObject]) -> String? {
+        var plist: [String: Any] = [:]
+        for (key, value) in options {
+            plist[key] = value
+        }
+        guard JSONSerialization.isValidJSONObject(plist),
+            let data = try? JSONSerialization.data(withJSONObject: plist),
+            let string = String(data: data, encoding: .utf8)
+        else {
+            return nil
+        }
+        return string
+    }
+
+    /// Writes a single plist-safe JSON string into providerConfiguration for on-demand starts.
+    /// Uses a copy of the protocol. Assigning the existing instance back does not mark the
+    /// manager dirty, so `saveToPreferences` keeps the previous blob. Connect still saved
+    /// because it also changes on-demand fields.
+    private func persistTunnelStartConfig(
+        _ options: [String: NSObject], on manager: NETunnelProviderManager
+    ) throws {
+        guard let existing = manager.protocolConfiguration as? NETunnelProviderProtocol,
+            let protocolConfig = existing.copy() as? NETunnelProviderProtocol
+        else {
+            throw NSError(
+                domain: "TunnelManager", code: -1,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "VPN protocol configuration is missing"
+                ])
+        }
+        guard let json = encodeTunnelOptionsAsJSONString(options) else {
+            throw NSError(
+                domain: "TunnelManager", code: -2,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "Failed to encode tunnel start config as JSON"
+                ])
+        }
+        protocolConfig.providerConfiguration = [Self.tunnelStartConfigJSONKey: json]
+        manager.protocolConfiguration = protocolConfig
+        os_log(
+            "Persisted tunnelStartConfigJSON (%{public}d bytes)",
+            log: logger, type: .info, json.utf8.count)
+    }
+
+    /// Rebuilds and saves the on-demand start blob when Always On is configured.
+    /// Call on connect (via connect path), launch, foreground, and exit node changes.
+    func refreshProviderConfigurationIfOnDemandEnabled() async {
+        guard configManager.onDemandOptionFromConfig() != .off else { return }
+
+        await ensureExtensionRegistered()
+        guard let manager = tunnelManager else {
+            os_log(
+                "refreshProviderConfiguration: VPN configuration isn't ready",
+                log: logger, type: .info)
+            return
+        }
+
+        guard let tunnelOptions = await buildTunnelOptions() else {
+            os_log(
+                "refreshProviderConfiguration: could not build tunnel options",
+                log: logger, type: .info)
+            return
+        }
+
+        do {
+            try persistTunnelStartConfig(tunnelOptions, on: manager)
+            configManager.onDemandOptionFromConfig().apply(on: manager)
+            try await manager.saveToPreferences()
+            try await manager.loadFromPreferences()
+            let hasBlob =
+                ((manager.protocolConfiguration as? NETunnelProviderProtocol)?
+                    .providerConfiguration?[Self.tunnelStartConfigJSONKey] as? String) != nil
+            os_log(
+                "refreshProviderConfiguration: saved blob present=%{public}d",
+                log: logger, type: .info, hasBlob ? 1 : 0)
+        } catch {
+            os_log(
+                "refreshProviderConfiguration failed: %{public}@",
+                log: logger, type: .error, error.localizedDescription)
+        }
+    }
+
+    /// Applies on-demand *rules* from Config (WireGuard-style). Does **not** engage
+    /// `isOnDemandEnabled` — Connect does that. Persists the start-config blob when
+    /// rules are non-off so a later OS start can succeed.
+    /// - Parameter option: When provided, used instead of re-reading Config (avoids races
+    ///   with async UI → config → apply pipelines).
+    func updateOnDemandSettings(option: ActivateOnDemandOption? = nil) async {
+        await ensureExtensionRegistered()
+
+        guard let manager = tunnelManager else {
+            os_log("updateOnDemandSettings: VPN configuration isn't ready", log: logger, type: .error)
+            return
+        }
+
+        let onDemandOption = option ?? configManager.onDemandOptionFromConfig()
+        let hasRules = onDemandOption != .off
+        os_log(
+            "On-demand rules: %{public}@",
+            log: logger, type: .info,
+            hasRules ? "saving (not engaging)" : "clearing")
+
+        if hasRules {
+            // Require a complete start blob before saving rules so Connect can engage safely.
+            guard let tunnelOptions = await buildTunnelOptions() else {
+                os_log(
+                    "On-demand rules not saved: tunnel options unavailable (not signed in?)",
+                    log: logger, type: .error)
+                return
+            }
+
+            do {
+                try persistTunnelStartConfig(tunnelOptions, on: manager)
+            } catch {
+                os_log(
+                    "On-demand rules not saved: %{public}@",
+                    log: logger, type: .error, error.localizedDescription)
+                return
+            }
+
+            // apply() sets rules and keeps isOnDemandEnabled = (rules != nil) && existing.
+            onDemandOption.apply(on: manager)
+            manager.isEnabled = true
+        } else {
+            ActivateOnDemandOption.off.apply(on: manager)
+            manager.isOnDemandEnabled = false
+            manager.onDemandRules = nil
+        }
+
+        do {
+            try await manager.saveToPreferences()
+            try await manager.loadFromPreferences()
+
+            let hasBlob =
+                ((manager.protocolConfiguration as? NETunnelProviderProtocol)?
+                    .providerConfiguration?[Self.tunnelStartConfigJSONKey] as? String) != nil
+
+            os_log(
+                "On-demand rules saved: hasRules=%{public}d rules=%{public}d isOnDemandEnabled=%{public}d blob=%{public}d",
+                log: logger, type: .info,
+                hasRules ? 1 : 0,
+                manager.onDemandRules?.count ?? 0,
+                manager.isOnDemandEnabled ? 1 : 0,
+                hasBlob ? 1 : 0)
+
+            await updateConnectionStatus()
+        } catch {
+            os_log(
+                "Error saving on-demand settings: %{public}@", log: logger, type: .error,
+                error.localizedDescription)
+        }
+    }
+
+    @MainActor
+    private func failConnect(message: String, alertTitle: String? = nil) {
+        lastConnectionError = message
+        status = .disconnected
+        if let alertTitle {
+            AlertManager.shared.showAlertDialog(title: alertTitle, message: message)
+        }
+    }
+
+    func disconnect() async {
+        await MainActor.run {
+            connectionErrorMessage = nil
+        }
+
+        guard let manager = tunnelManager else {
+            return
+        }
+
+        // Stop socket polling first
+        stopSocketPolling()
+
+        // Disable on-demand so the OS does not immediately reconnect after a manual disconnect.
+        // Preference values (rules) are left intact in Config.
+        if manager.isOnDemandEnabled {
+            manager.isOnDemandEnabled = false
+            do {
+                try await manager.saveToPreferences()
+                try await manager.loadFromPreferences()
+            } catch {
+                os_log(
+                    "Error disabling on-demand on disconnect: %{public}@", log: logger, type: .error,
+                    error.localizedDescription)
+            }
+        }
+
+        // Note: Go stopTunnel is called from within the PacketTunnelProvider system extension
+        // when the tunnel stops, not from the app side
+
+        manager.connection.stopVPNTunnel()
+        await updateConnectionStatus()
+    }
+
+    /// Disconnects, turns off on-demand so the OS can't bring the tunnel back, and
+    /// waits until the extension has actually stopped the tunnel or `timeout`
+    /// elapses. `disconnect()` alone returns as soon as the stop is requested.
+    func stopCompletely(timeout: TimeInterval = 5) async {
+        await disconnect()
+
+        guard let manager = tunnelManager else { return }
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            switch manager.connection.status {
+            case .disconnected, .invalid:
+                // Publish the stopped state now rather than waiting for the
+                // status notification, so callers see it as soon as this returns.
+                await updateConnectionStatus()
+                return
+            default:
+                try? await Task.sleep(nanoseconds: 100_000_000)
+            }
+        }
+        os_log("Tunnel did not stop within %{public}.0fs", log: logger, type: .error, timeout)
+    }
+
+    /// Polls `status` until it reaches a terminal state (`.connected` or `.disconnected`) or
+    /// `timeout` elapses, returning whatever `status` is at that point. `connect()`/`disconnect()`
+    /// only kick off the underlying NE/socket work and return immediately, so callers that need
+    /// the final outcome (e.g. App Intents reporting back to Shortcuts) should await this rather
+    /// than reading `status` right after those calls return.
+    func waitUntilSettled(timeout: TimeInterval = 15) async -> TunnelStatus {
+        let deadline = Date().addingTimeInterval(timeout)
+        while status != .connected && status != .disconnected && Date() < deadline {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+        }
+        return status
+    }
+
+    // MARK: - Exit Nodes
+
+    /// The exit nodes available in the current org; empty when there are none.
+    var availableExitNodes: [SiteResource] {
+        guard let orgId = authManager.currentOrg?.orgId, gatewayResourcesOrgId == orgId else {
+            return []
+        }
+        return gatewayResources
+    }
+
+    /// The selected exit node's site resource ID, or nil for none. Once olm has confirmed what
+    /// it's actually routing through (`hasOlmGatewayStatus`), this is what it reports, so it
+    /// follows e.g. the server disabling a gateway; before that - including the window right
+    /// after connecting, before the first status poll lands - it's the saved choice, so the
+    /// picker doesn't flash "None" while `isNEConnected` is true but olm hasn't answered yet.
+    var activeExitNodeId: Int? {
+        if isNEConnected, hasOlmGatewayStatus {
+            return olmGatewayResourceId
+        }
+        guard let resourceId = savedExitNodeResourceId else { return nil }
+        // While this org's list hasn't loaded (e.g. right after an org/account switch), trust
+        // the saved ID so the picker shows "…" instead of flashing "None".
+        guard gatewayResourcesOrgId == authManager.currentOrg?.orgId else {
+            return resourceId
+        }
+        return availableExitNodes.contains(where: { $0.siteResourceId == resourceId })
+            ? resourceId : nil
+    }
+
+    /// Reloads `savedExitNodeResourceId` from the account store for the current org. Call after
+    /// switching accounts or orgs so the picker restores that context's last choice.
+    func reloadSavedExitNode() {
+        let orgId = authManager.currentOrg?.orgId ?? accountManager.activeAccount?.orgId
+        savedExitNodeResourceId = Self.savedExitNode(
+            accountManager: accountManager, orgId: orgId)
+    }
+
+    private static func savedExitNode(accountManager: AccountManager, orgId: String?) -> Int? {
+        guard let account = accountManager.activeAccount, let orgId else { return nil }
+        return accountManager.getExitNode(userId: account.userId, orgId: orgId)
+    }
+
+    /// Reloads the org's exit nodes from the server.
+    func refreshExitNodes() async {
+        guard authManager.isAuthenticated, !authManager.sessionExpired,
+            let orgId = authManager.currentOrg?.orgId
+        else { return }
+
+        do {
+            let gateways = try await authManager.apiClient.listGatewayResources(orgId: orgId)
+            await MainActor.run {
+                self.gatewayResources = gateways
+                self.gatewayResourcesOrgId = orgId
+            }
+        } catch {
+            // Keep whatever we had; the server may just be unreachable.
+            os_log(
+                "Failed to list exit nodes: %{public}@", log: logger, type: .error,
+                error.localizedDescription)
+        }
+    }
+
+    /// After an org switch: reload the saved choice for the new org, refresh the list, and if
+    /// the tunnel is up apply that choice live without wiping other orgs' saved nodes.
+    func syncExitNodeAfterOrgSwitch() async {
+        await MainActor.run { reloadSavedExitNode() }
+        await refreshExitNodes()
+
+        guard isNEConnected else { return }
+
+        if let resourceId = savedExitNodeResourceId,
+            let node = availableExitNodes.first(where: { $0.siteResourceId == resourceId })
+        {
+            do {
+                _ = try await socketManager.selectGateway(
+                    siteResourceId: node.siteResourceId, siteIds: node.siteIds)
+                await MainActor.run {
+                    self.gatewayUpdateGeneration += 1
+                    self.hasOlmGatewayStatus = true
+                    self.olmGatewayResourceId = node.siteResourceId
+                }
+            } catch {
+                os_log(
+                    "Error applying saved exit node after org switch: %{public}@", log: logger,
+                    type: .error, error.localizedDescription)
+            }
+        } else {
+            do {
+                _ = try await socketManager.disableGateway()
+                await MainActor.run {
+                    self.gatewayUpdateGeneration += 1
+                    self.hasOlmGatewayStatus = true
+                    self.olmGatewayResourceId = nil
+                }
+            } catch {
+                os_log(
+                    "Error clearing exit node after org switch: %{public}@", log: logger,
+                    type: .error, error.localizedDescription)
+            }
+        }
+
+        await refreshProviderConfigurationIfOnDemandEnabled()
+    }
+
+    /// Routes all traffic through the given exit node. With the tunnel up it takes effect
+    /// immediately; otherwise the choice is saved and applied on the next connect.
+    func selectExitNode(_ node: SiteResource) async {
+        guard let orgId = authManager.currentOrg?.orgId,
+            let userId = accountManager.activeAccount?.userId
+        else { return }
+
+        if isNEConnected {
+            do {
+                _ = try await socketManager.selectGateway(
+                    siteResourceId: node.siteResourceId, siteIds: node.siteIds)
+            } catch {
+                os_log(
+                    "Error selecting exit node: %{public}@", log: logger, type: .error,
+                    error.localizedDescription)
+                await MainActor.run {
+                    AlertManager.shared.showAlertDialog(
+                        title: "Exit Node Selection Failed",
+                        message:
+                            "Failed to route traffic through \(node.name): \(error.localizedDescription)"
+                    )
+                }
+                return
+            }
+            await MainActor.run {
+                self.gatewayUpdateGeneration += 1
+                self.hasOlmGatewayStatus = true
+                self.olmGatewayResourceId = node.siteResourceId
+            }
+        }
+
+        await MainActor.run {
+            self.accountManager.setExitNode(
+                userId: userId, orgId: orgId, resourceId: node.siteResourceId)
+            self.savedExitNodeResourceId = node.siteResourceId
+        }
+
+        // On-demand starts read the saved start blob, not the account, so rewrite it now.
+        // Otherwise an OS-initiated reconnect after the app is killed drops the exit node.
+        await refreshProviderConfigurationIfOnDemandEnabled()
+    }
+
+    /// Stops routing traffic through an exit node and forgets the saved choice for the current org.
+    func disableExitNode() async {
+        if isNEConnected {
+            do {
+                _ = try await socketManager.disableGateway()
+            } catch {
+                os_log(
+                    "Error disabling exit node: %{public}@", log: logger, type: .error,
+                    error.localizedDescription)
+                await MainActor.run {
+                    AlertManager.shared.showAlertDialog(
+                        title: "Exit Node Failed",
+                        message: "Failed to disable the exit node: \(error.localizedDescription)"
+                    )
+                }
+                return
+            }
+            await MainActor.run {
+                self.gatewayUpdateGeneration += 1
+                self.hasOlmGatewayStatus = true
+                self.olmGatewayResourceId = nil
+            }
+        }
+
+        await MainActor.run {
+            if let userId = self.accountManager.activeAccount?.userId,
+                let orgId = self.authManager.currentOrg?.orgId
+                    ?? self.accountManager.activeAccount?.orgId
+            {
+                self.accountManager.setExitNode(userId: userId, orgId: orgId, resourceId: nil)
+            }
+            self.savedExitNodeResourceId = nil
+        }
+
+        // Keep the on-demand start blob in sync (see selectExitNode).
+        await refreshProviderConfigurationIfOnDemandEnabled()
+    }
+
+    /// Turns the saved exit node into the resource and site IDs to establish when connecting, or
+    /// nil to connect without one. Only the resource ID is saved (scoped to account + org),
+    /// so a deleted, disabled or site-less resource is skipped.
+    private func resolveSavedExitNode(orgId: String) async -> SiteResource? {
+        guard let userId = accountManager.activeAccount?.userId,
+            let resourceId = accountManager.getExitNode(userId: userId, orgId: orgId)
+        else { return nil }
+
+        do {
+            let gateways = try await authManager.apiClient.listGatewayResources(orgId: orgId)
+            if let gateway = gateways.first(where: { $0.siteResourceId == resourceId }) {
+                return gateway
+            }
+            os_log(
+                "Saved exit node no longer exists or is disabled; not using it", log: logger,
+                type: .info)
+        } catch {
+            // Fall back to the last list fetched for this org. Without this, a failed lookup
+            // (e.g. while traffic is moving to a new exit node) rewrites the on-demand start
+            // blob without the exit node and the next OS-initiated start drops it.
+            let cached = await MainActor.run { () -> SiteResource? in
+                guard self.gatewayResourcesOrgId == orgId else { return nil }
+                return self.gatewayResources.first(where: { $0.siteResourceId == resourceId })
+            }
+            if let cached {
+                os_log(
+                    "Could not look up saved exit node (%{public}@); using cached exit node list",
+                    log: logger, type: .error, error.localizedDescription)
+                return cached
+            }
+            os_log(
+                "Could not look up saved exit node (%{public}@); connecting without it",
+                log: logger, type: .error, error.localizedDescription)
+        }
+        return nil
+    }
+
+    func switchOrg(orgId: String) async {
+        // Only switch if tunnel is connected
+        guard isNEConnected else {
+            return
+        }
+
+        do {
+            _ = try await socketManager.switchOrg(orgId: orgId)
+            os_log(
+                "Successfully switched to organization: %{public}@", log: logger, type: .info, orgId
+            )
+        } catch {
+            os_log(
+                "Error switching organization: %{public}@", log: logger, type: .error,
+                error.localizedDescription)
+        }
+    }
+
+    // MARK: - Socket Polling
+
+    private func startSocketPolling() {
+        // Stop any existing polling
+        stopSocketPolling()
+
+        guard !isPollingSocket else { return }
+
+        isPollingSocket = true
+        // Clear error alert flag when starting a new connection attempt
+        hasShownErrorAlert = false
+        // This connection hasn't heard from olm yet; activeExitNodeId falls back to the saved
+        // choice until the first poll below sets this.
+        hasOlmGatewayStatus = false
+        // Invalidate any poll from a previous run that might still be in flight.
+        gatewayUpdateGeneration += 1
+
+        socketPollingTask = Task { [weak self] in
+            guard let self = self else { return }
+
+            while !Task.isCancelled && self.isPollingSocket {
+                do {
+                    // Captured before the request so a live select/disable call that lands
+                    // while this poll is in flight can be detected once it returns.
+                    let pollGeneration = await MainActor.run { self.gatewayUpdateGeneration }
+                    // Query socket for status
+                    let socketStatus = try await self.socketManager.getStatus()
+
+                    // Check if tunnel has been terminated - if so, disconnect the network extension
+                    if socketStatus.terminated {
+                        os_log(
+                            "Tunnel terminated, disconnecting network extension", log: self.logger,
+                            type: .info)
+                        await self.disconnect()
+                        break
+                    }
+
+                    // Error before registration. Stop the extension and turn off
+                    // always-on so the OS does not start it again.
+                    if let error = socketStatus.error, socketStatus.registered != true {
+                        let shouldShowAlert = !hasShownErrorAlert
+                        hasShownErrorAlert = true
+
+                        // Record before teardown so waitUntilSettled() callers see the
+                        // error rather than a bare .disconnected status.
+                        await MainActor.run {
+                            self.lastConnectionError = error.message
+                        }
+
+                        if shouldShowAlert {
+                            os_log(
+                                "Error received from socket before registration: %{public}@ - %{public}@",
+                                log: self.logger,
+                                type: .error,
+                                error.code,
+                                error.message)
+
+                            #if os(macOS)
+                            await AlertManager.shared.showConnectionErrorNotification(
+                                title: "Connection Error",
+                                message: error.message
+                            )
+                            #endif
+                        }
+
+                        if Self.sessionExpiredSocketErrorCodes.contains(error.code) {
+                            await MainActor.run {
+                                self.authManager.markSessionExpiredFromConnection()
+                            }
+                        }
+
+                        self.stopSocketPolling()
+
+                        // disconnect() disables isOnDemandEnabled before stopping the tunnel.
+                        await self.disconnect()
+
+                        // disconnect() clears the message. Put it back so iOS can show it
+                        // the next time the app is opened.
+                        await MainActor.run {
+                            self.connectionErrorMessage = error.message
+                            self.status = .disconnected
+                        }
+                        break
+                    } else {
+                        // Follow the exit node olm is actually routing through. olm applies any
+                        // pending gateway synchronously before marking itself registered, so
+                        // gatewayActive only becomes a trustworthy answer once registered is
+                        // true - before that, activeExitNodeId keeps showing the saved choice.
+                        let registered = socketStatus.registered == true
+                        let gatewayId: Int? =
+                            socketStatus.gatewayActive == true
+                            ? socketStatus.gatewaySiteResourceId : nil
+                        await MainActor.run {
+                            // A live select/disable call (or a fresh connect's reset) landed
+                            // while this request was in flight; its answer may predate that
+                            // change, so leave the newer value alone.
+                            guard self.gatewayUpdateGeneration == pollGeneration else { return }
+                            if registered {
+                                self.hasOlmGatewayStatus = true
+                            }
+                            if self.olmGatewayResourceId != gatewayId {
+                                self.olmGatewayResourceId = gatewayId
+                            }
+                        }
+
+                        if socketStatus.error == nil, socketStatus.registered == true {
+                            hasShownErrorAlert = false
+                            await MainActor.run {
+                                if self.connectionErrorMessage != nil {
+                                    self.connectionErrorMessage = nil
+                                }
+                            }
+                        }
+
+                        // Determine the new tunnel status based on socket response
+                        let newStatus: TunnelStatus
+                        if socketStatus.connected && socketStatus.registered == true {
+                            newStatus = .connected
+                        } else {
+                            newStatus = .registering
+                        }
+
+                        // Only update if status actually changed
+                        let statusChanged = lastTunnelStatus != newStatus
+                        let needsNEUpdate = !lastIsNEConnected
+
+                        if statusChanged || needsNEUpdate {
+                            let applied = await MainActor.run { () -> Bool in
+                                guard self.providerIsRunning() else { return false }
+                                if statusChanged {
+                                    self.status = newStatus
+                                    os_log(
+                                        "Tunnel status changed to: %{public}@", log: self.logger,
+                                        type: .debug, newStatus.displayText)
+                                }
+                                if needsNEUpdate {
+                                    self.isNEConnected = true
+                                }
+                                return true
+                            }
+                            if applied {
+                                lastTunnelStatus = newStatus
+                                if needsNEUpdate {
+                                    lastIsNEConnected = true
+                                }
+                            }
+                        }
+                    }
+                } catch {
+                    // Socket not available - only update if status needs to change
+                    let statusNeedsUpdate = lastTunnelStatus != .registering
+
+                    if statusNeedsUpdate {
+                        lastTunnelStatus = .registering
+
+                        await MainActor.run {
+                            // Check if VPN is still connected
+                            if let manager = self.tunnelManager,
+                                manager.connection.status == .connected
+                            {
+                                self.status = .registering
+                                if !self.isNEConnected {
+                                    self.isNEConnected = true
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Wait before next poll
+                try? await Task.sleep(nanoseconds: UInt64(self.socketPollInterval * 1_000_000_000))
+            }
+        }
+    }
+
+    /// True while NetworkExtension still has the provider up. Poll results must not
+    /// move the UI back to `.registering` after the user stops the extension.
+    private func providerIsRunning() -> Bool {
+        guard let manager = tunnelManager else { return false }
+        switch manager.connection.status {
+        case .connected, .connecting, .reasserting:
+            return true
+        default:
+            return false
+        }
+    }
+
+    /// Forgets what olm last reported about the gateway, so a new connection starts from the
+    /// saved choice instead of the previous session's live value. Without this,
+    /// `hasOlmGatewayStatus` stays true across a disconnect and, as soon as `isNEConnected`
+    /// flips true on the next connect (before the first poll), `activeExitNodeId` returns the
+    /// stale `olmGatewayResourceId` - flashing the previously used exit node (or "None").
+    @MainActor
+    private func resetLiveGatewayState() {
+        gatewayUpdateGeneration += 1
+        hasOlmGatewayStatus = false
+        olmGatewayResourceId = nil
+    }
+
+    private func stopSocketPolling() {
+        isPollingSocket = false
+        socketPollingTask?.cancel()
+        socketPollingTask = nil
+
+        // Clear cached values
+        lastTunnelStatus = nil
+        lastIsNEConnected = false
+    }
+
+    #if os(iOS)
+        @MainActor
+        private func syncLiveActivity(status: TunnelStatus) {
+            VPNLiveActivityManager.shared.handleStatusChange(
+                status: status,
+                organizationName: authManager.currentOrg?.name
+            )
+        }
+
+        @MainActor
+        private func reconcileLiveActivityOnLaunch() {
+            VPNLiveActivityManager.shared.reconcileOnLaunch(
+                status: status,
+                organizationName: authManager.currentOrg?.name
+            )
+        }
+
+        @MainActor
+        private func syncWidgetStatus(status: TunnelStatus) {
+            let organizationName =
+                authManager.isAuthenticated ? authManager.currentOrg?.name : nil
+            let serverHostname =
+                authManager.isAuthenticated ? accountManager.activeAccount?.hostname : nil
+
+            let statusText: String
+            if hasOnDemandRules && isOnDemandEnabled && status == .disconnected {
+                statusText = "On-Demand Enabled"
+            } else if hasOnDemandRules && !isOnDemandEnabled && status == .disconnected {
+                statusText = "On-Demand Disabled"
+            } else {
+                statusText = status.displayText
+            }
+
+            VPNWidgetStatusStore.write(
+                statusText: statusText,
+                isConnected: status == .connected,
+                isBusy: status == .starting || status == .registering,
+                isOnDemandEnabled: isOnDemandEnabled,
+                organizationName: organizationName,
+                serverHostname: serverHostname
+            )
+            VPNWidgetStatusStore.reloadTimelines()
+        }
+    #endif
+}
+
+// MARK: - OSSystemExtensionRequestDelegate
+#if os(macOS)
+    extension TunnelManager: OSSystemExtensionRequestDelegate {
+        func request(
+            _ request: OSSystemExtensionRequest,
+            didFinishWithResult result: OSSystemExtensionRequest.Result
+        ) {
+            os_log(
+                "System extension request finished with result: %d", log: logger, type: .info,
+                result.rawValue)
+
+            let success = (result == .willCompleteAfterReboot || result == .completed)
+
+            Task { @MainActor in
+                if success {
+                    if result == .willCompleteAfterReboot {
+                        status = .registering
+                    } else {
+                        status = .disconnected
+                    }
+                } else {
+                    status = .disconnected
+                }
+            }
+
+            systemExtensionInstallContinuation?.resume(returning: success)
+            systemExtensionInstallContinuation = nil
+            systemExtensionRequest = nil
+        }
+
+        func request(_ request: OSSystemExtensionRequest, didFailWithError error: Error) {
+            os_log(
+                "System extension request failed: %{public}@", log: logger, type: .error,
+                error.localizedDescription)
+
+            Task { @MainActor in
+                status = .disconnected
+            }
+
+            systemExtensionInstallContinuation?.resume(throwing: error)
+            systemExtensionInstallContinuation = nil
+            systemExtensionRequest = nil
+        }
+
+        func requestNeedsUserApproval(_ request: OSSystemExtensionRequest) {
+            os_log(
+                "System extension needs user approval - user should see System Preferences prompt",
+                log: logger, type: .info)
+            // The system will show a prompt to the user
+            // User needs to go to System Preferences > Privacy & Security > System Extensions
+            // and approve the extension
+        }
+
+        func request(
+            _ request: OSSystemExtensionRequest,
+            actionForReplacingExtension existing: OSSystemExtensionProperties,
+            withExtension newExtension: OSSystemExtensionProperties
+        ) -> OSSystemExtensionRequest.ReplacementAction {
+            os_log("System extension replacement requested, replacing...", log: logger, type: .info)
+            // Always replace the existing extension with the new version
+            return .replace
+        }
+    }
+#endif
+
+extension Encodable {
+    /// Converts any Encodable struct into an NSDictionary for tunnel options.
+    fileprivate func asNSDict() -> NSObject {
+        // Encode to JSON data
+        guard let data = try? JSONEncoder().encode(self),
+            let object = try? JSONSerialization.jsonObject(with: data, options: []),
+            let dict = object as? NSDictionary
+        else {
+            // Fallback: empty dictionary if something goes wrong
+            return NSDictionary()
+        }
+        return dict
+    }
+}

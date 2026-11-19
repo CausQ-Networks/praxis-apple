@@ -1,0 +1,269 @@
+import SwiftUI
+import AppKit
+
+struct PreferencesContentView: View {
+    @ObservedObject var configManager: ConfigManager
+    @ObservedObject var tunnelManager: TunnelManager
+    @StateObject private var launchAtLoginManager = LaunchAtLoginManager()
+    @State private var showPrimaryDNSModal = false
+    @State private var showSecondaryDNSModal = false
+    @State private var showMTUModal = false
+    @State private var editingPrimaryDNS = ""
+    @State private var editingSecondaryDNS = ""
+    @State private var editingMTU = ""
+    @State private var showEnableDNSOverrideAlert = false
+    @State private var showLaunchAtLoginErrorAlert = false
+
+    private var dnsOverrideEnabled: Bool {
+        configManager.getDNSOverrideEnabled()
+    }
+    
+    private var dnsTunnelEnabled: Bool {
+		configManager.getDNSTunnelEnabled()
+	}
+
+    private var exitNodeTakesPrecedence: Bool {
+        configManager.getExitNodeTakesPrecedence()
+    }
+    
+    private var primaryDNSServer: String {
+        configManager.getPrimaryDNSServer()
+    }
+    
+    private var secondaryDNSServer: String {
+        configManager.getSecondaryDNSServer()
+    }
+    
+    private var displayPrimaryDNS: String {
+        primaryDNSServer.isEmpty ? "System DNS" : primaryDNSServer
+    }
+
+    private var displaySecondaryDNS: String {
+        secondaryDNSServer.isEmpty ? "System DNS" : secondaryDNSServer
+    }
+
+    private var tunnelMTUDisplay: String {
+        String(configManager.getTunnelMTU())
+    }
+
+    private static let docsConfigureClientURL = URL(string: "https://docs.praxis.causq.com/manage/clients/configure-client")!
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            ScrollView {
+                Form {
+                    Section(header: Text("General")) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Start at Login")
+                                    .font(.system(size: 13))
+                                Text("Automatically open Praxis when you log in to your Mac.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Toggle("", isOn: Binding(
+                                get: { launchAtLoginManager.isEnabled },
+                                set: { newValue in
+                                    launchAtLoginManager.setEnabled(newValue)
+                                    if launchAtLoginManager.errorMessage != nil {
+                                        showLaunchAtLoginErrorAlert = true
+                                    }
+                                }
+                            ))
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                        }
+                    }
+
+                    OnDemandActivationSection(
+                        configManager: configManager,
+                        tunnelManager: tunnelManager
+                    )
+
+                    Section(header: Text("DNS Settings")) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Enable Aliases (DNS Override)")
+                                    .font(.system(size: 13))
+                                Text("When enabled, the client uses custom DNS servers to resolve internal resources and aliases. This overrides your system's default DNS settings. Queries that cannot be resolved as a Praxis resource will be forwarded to your configured Upstream DNS Server.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Toggle("", isOn: Binding(
+                                get: { dnsOverrideEnabled },
+                                set: { newValue in
+                                    if !configManager.setDNSOverrideEnabled(newValue) {
+                                        showEnableDNSOverrideAlert = true
+                                    }
+                                }
+                            ))
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                        }
+
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("DNS Over Tunnel")
+                                    .font(.system(size: 13))
+                                Text("When enabled, DNS queries are routed through the tunnel for remote resolution. To ensure queries are tunneled correctly, you must define the DNS server as a Praxis resource and enter its address as an Upstream DNS Server.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Toggle("", isOn: Binding(
+                                get: { dnsTunnelEnabled },
+                                set: { newValue in
+                                    _ = configManager.setDNSTunnelEnabled(newValue)
+                                }
+                            ))
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                            .disabled(!dnsOverrideEnabled)
+                        }
+                        
+                        if dnsOverrideEnabled {
+                            HStack {
+                                Text("Primary Upstream DNS Server")
+                                    .font(.system(size: 13))
+                                Spacer()
+                                Text(displayPrimaryDNS)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.secondary)
+                                Button("Set...") {
+                                    editingPrimaryDNS = primaryDNSServer
+                                    showPrimaryDNSModal = true
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                            }
+                            
+                            HStack {
+                                Text("Secondary Upstream DNS Server")
+                                    .font(.system(size: 13))
+                                Spacer()
+                                Text(displaySecondaryDNS)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.secondary)
+                                Button("Set...") {
+                                    editingSecondaryDNS = secondaryDNSServer
+                                    showSecondaryDNSModal = true
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                            }
+                        }
+                    }
+
+                    Section(header: Text("Advanced")) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Exit Node Takes Precedence Over Resources")
+                                    .font(.system(size: 13))
+                                Text("When enabled, routes for individual resources are not added to the system and their aliases are not resolved, so all traffic is sent through the exit node instead of directly to resources.")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Toggle("", isOn: Binding(
+                                get: { exitNodeTakesPrecedence },
+                                set: { newValue in
+                                    _ = configManager.setExitNodeTakesPrecedence(newValue)
+                                }
+                            ))
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            HStack {
+                                Text("MTU")
+                                    .font(.system(size: 13))
+                                Spacer()
+                                Text(tunnelMTUDisplay)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.secondary)
+                                Button("Set...") {
+                                    editingMTU = tunnelMTUDisplay
+                                    showMTUModal = true
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                            }
+
+                            Text("Your sites must be configured to use the same MTU value.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+
+                    Section(header: Text("Help")) {
+                        Link(destination: Self.docsConfigureClientURL) {
+                            HStack {
+                                Text("See docs for more info on these settings")
+                                Spacer()
+                                Image(systemName: "arrow.up.forward")
+                                    .foregroundColor(.secondary)
+                                    .font(.caption)
+                            }
+                        }
+                        .foregroundColor(.accentColor)
+                    }
+                }
+                .formStyle(.grouped)
+                .scrollContentBackground(.hidden)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .sheet(isPresented: $showPrimaryDNSModal) {
+            DNSServerModalView(
+                title: "Primary Upstream DNS Server:",
+                dnsServer: $editingPrimaryDNS,
+                isPresented: $showPrimaryDNSModal,
+                onSave: { newValue in
+                    _ = configManager.setPrimaryDNSServer(newValue)
+                }
+            )
+        }
+        .sheet(isPresented: $showSecondaryDNSModal) {
+            DNSServerModalView(
+                title: "Secondary Upstream DNS Server:",
+                dnsServer: $editingSecondaryDNS,
+                isPresented: $showSecondaryDNSModal,
+                onSave: { newValue in
+                    _ = configManager.setSecondaryDNSServer(newValue)
+                }
+            )
+        }
+        .sheet(isPresented: $showMTUModal) {
+            MTUModalView(
+                title: "MTU:",
+                mtuValue: $editingMTU,
+                isPresented: $showMTUModal,
+                onSave: { newValue in
+                    _ = configManager.setTunnelMTUFromString(newValue)
+                }
+            )
+        }
+        .alert("Upstream DNS Server Required", isPresented: $showEnableDNSOverrideAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Set a Primary or Secondary Upstream DNS Server before enabling Aliases (DNS Override).")
+        }
+        .alert("Start at Login", isPresented: $showLaunchAtLoginErrorAlert) {
+            Button("OK", role: .cancel) {
+                launchAtLoginManager.errorMessage = nil
+            }
+        } message: {
+            Text(launchAtLoginManager.errorMessage ?? "Unable to update the Start at Login setting.")
+        }
+        .onAppear {
+            launchAtLoginManager.refresh()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            launchAtLoginManager.refresh()
+        }
+    }
+}
+

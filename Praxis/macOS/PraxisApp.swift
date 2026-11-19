@@ -1,0 +1,319 @@
+import AppIntents
+import AppKit
+import Sparkle
+import SwiftUI
+import UserNotifications
+import os.log
+
+#if os(macOS)
+struct MenuBarIconView: View {
+    @ObservedObject var tunnelManager: TunnelManager
+
+    private var tunnelStatus: TunnelStatus {
+        tunnelManager.status
+    }
+
+    private var isInIntermediateState: Bool {
+        switch tunnelStatus {
+        case .starting, .registering:
+            return true
+        default:
+            return false
+        }
+    }
+
+    var body: some View {
+        if tunnelStatus == .connected {
+            Image("MenuBarIcon")
+                .renderingMode(.template)
+        } else if isInIntermediateState {
+            AnimatedLoadingIcon()
+        } else {
+            Image("MenuBarIconDimmed")
+                .renderingMode(.template)
+        }
+    }
+}
+
+/// Status item label. It lives for the whole session, unlike the `.window`
+/// style panel content, which isn't built until the first click, so launch
+/// work hangs off this view.
+struct MenuBarLabel: View {
+    let authManager: AuthManager
+    @ObservedObject var tunnelManager: TunnelManager
+    @ObservedObject var onboardingViewModel: MacOnboardingViewModel
+    @Environment(\.openWindow) private var openWindow
+    @State private var contextMenu: StatusItemContextMenu?
+
+    var body: some View {
+        MenuBarIconView(tunnelManager: tunnelManager)
+            .onAppear {
+                if contextMenu == nil {
+                    let menu = StatusItemContextMenu(tunnelManager: tunnelManager)
+                    menu.install()
+                    contextMenu = menu
+                }
+
+
+                // Menu-bar-only unless onboarding or a restored window is open.
+                // Window restoration runs first and bails out while the policy is still
+                // .regular, so this check has to notice those windows or the Dock icon
+                // disappears out from under them.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    guard !onboardingViewModel.isPresenting else { return }
+                    guard !Self.hasVisibleAppWindow() else { return }
+                    guard NSApp.activationPolicy() != .accessory else { return }
+                    NSApp.setActivationPolicy(.accessory)
+                }
+            }
+            .task {
+                await authManager.initialize()
+                await tunnelManager.refreshProviderConfigurationIfOnDemandEnabled()
+            }
+            .task {
+                await onboardingViewModel.refreshPages()
+                if onboardingViewModel.isPresenting, !onboardingViewModel.hasOpenedOnboardingWindowThisSession {
+                    onboardingViewModel.hasOpenedOnboardingWindowThisSession = true
+                    openWindow(id: "onboarding")
+                    NSApp.setActivationPolicy(.regular)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                        NSApp.windows.first { $0.title == "Praxis Setup" }?.makeKeyAndOrderFront(nil)
+                    }
+                }
+            }
+            .onChange(of: onboardingViewModel.isPresenting) { _, newValue in
+                if !newValue {
+                    onboardingViewModel.hasOpenedOnboardingWindowThisSession = false
+                    NSApp.setActivationPolicy(.accessory)
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                Task {
+                    await tunnelManager.refreshProviderConfigurationIfOnDemandEnabled()
+                }
+            }
+    }
+
+    /// Login, preferences, and onboarding windows that should keep the app in the Dock.
+    private static func hasVisibleAppWindow() -> Bool {
+        let knownIds: Set<String> = ["preferences", "onboarding"]
+        var knownTitles: Set<String> = ["Praxis Setup"]
+        knownTitles.formUnion(PreferencesSection.allCases.map(\.rawValue))
+
+        return NSApp.windows.contains { window in
+            let isShown = window.isVisible || window.isMiniaturized
+            guard isShown else { return false }
+            if let id = window.identifier?.rawValue, knownIds.contains(id) {
+                return true
+            }
+            return knownTitles.contains(window.title)
+        }
+    }
+}
+
+struct AnimatedLoadingIcon: View {
+    @State private var currentFrame = 1
+
+    private let frameNames = ["MenuBarIconLoading1", "MenuBarIconLoading2", "MenuBarIconLoading3"]
+
+    var body: some View {
+        Image(frameNames[currentFrame - 1])
+            .renderingMode(.template)
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(nanoseconds: 300_000_000)  // 0.3 seconds
+                    currentFrame = (currentFrame % 3) + 1
+                }
+            }
+    }
+}
+
+final class PraxisAppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        UNUserNotificationCenter.current().delegate = self
+        PraxisAppShortcuts.updateAppShortcutParameters()
+    }
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .sound]
+    }
+}
+
+@main
+struct PraxisApp: App {
+    @NSApplicationDelegateAdaptor(PraxisAppDelegate.self) private var appDelegate
+    @StateObject private var configManager = ConfigManager()
+    @StateObject private var secretManager = SecretManager()
+    @StateObject private var accountManager = AccountManager()
+    @StateObject private var apiClient: APIClient
+    @StateObject private var authManager: AuthManager
+    @StateObject private var tunnelManager: TunnelManager
+    @StateObject private var onboardingStateManager: OnboardingStateManager
+    @StateObject private var onboardingViewModel: MacOnboardingViewModel
+
+    private let updaterController: SPUStandardUpdaterController
+
+    private static let sparkleMinimumCheckInterval: TimeInterval = 3600
+
+    private static let logger: OSLog = {
+        let subsystem = Bundle.main.bundleIdentifier ?? "com.causq.praxis"
+        return OSLog(subsystem: subsystem, category: "PraxisApp")
+    }()
+
+    init() {
+        // Initialize Sparkle updater
+        updaterController = SPUStandardUpdaterController(
+            startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+        let configMgr = ConfigManager()
+        let secretMgr = SecretManager()
+        let accountMgr = AccountManager()
+
+        Self.applyUpdateSettings(from: configMgr, to: updaterController.updater)
+
+        let activeAccount = accountMgr.activeAccount
+
+        let hostname = activeAccount?.hostname ?? ConfigManager.defaultHostname
+        let token =
+            activeAccount.flatMap { acct in
+                secretMgr.getSessionToken(userId: acct.userId)
+            } ?? ""
+
+        let client = APIClient(baseURL: hostname, sessionToken: token)
+        let authMgr = AuthManager(
+            apiClient: client,
+            configManager: configMgr,
+            accountManager: accountMgr,
+            secretManager: secretMgr,
+        )
+        let tunnelMgr = TunnelManager(
+            configManager: configMgr,
+            accountManager: accountMgr,
+            secretManager: secretMgr,
+            authManager: authMgr,
+        )
+
+        // Set tunnel manager reference in auth manager for org switching
+        authMgr.tunnelManager = tunnelMgr
+
+        AppDependencies.shared.configure(
+            tunnelManager: tunnelMgr, authManager: authMgr, accountManager: accountMgr)
+
+        let onboardingState = OnboardingStateManager()
+        let onboardingVM = MacOnboardingViewModel(
+            onboardingState: onboardingState,
+            tunnelManager: tunnelMgr,
+            accountManager: accountMgr
+        )
+
+        _configManager = StateObject(wrappedValue: configMgr)
+        _secretManager = StateObject(wrappedValue: secretMgr)
+        _accountManager = StateObject(wrappedValue: accountMgr)
+        _apiClient = StateObject(wrappedValue: client)
+        _authManager = StateObject(wrappedValue: authMgr)
+        _tunnelManager = StateObject(wrappedValue: tunnelMgr)
+        _onboardingStateManager = StateObject(wrappedValue: onboardingState)
+        _onboardingViewModel = StateObject(wrappedValue: onboardingVM)
+    }
+
+    /// Applies present pangolin.json update keys to Sparkle. Absent keys leave Sparkle prefs alone.
+    private static func applyUpdateSettings(from configManager: ConfigManager, to updater: SPUUpdater) {
+        var didChangeSchedulerSettings = false
+
+        if let autoChecks = configManager.getAutoUpdateChecksEnabled() {
+            os_log(
+                "Applying config autoUpdateChecksEnabled=%{public}@",
+                log: logger, type: .info,
+                autoChecks ? "true" : "false")
+            updater.automaticallyChecksForUpdates = autoChecks
+            didChangeSchedulerSettings = true
+        }
+
+        if let autoDownload = configManager.getAutoDownloadUpdatesEnabled() {
+            os_log(
+                "Applying config autoDownloadUpdatesEnabled=%{public}@",
+                log: logger, type: .info,
+                autoDownload ? "true" : "false")
+            updater.automaticallyDownloadsUpdates = autoDownload
+        }
+
+        if let intervalSeconds = configManager.getUpdateCheckIntervalSeconds() {
+            var interval = TimeInterval(intervalSeconds)
+            if interval < sparkleMinimumCheckInterval {
+                os_log(
+                    "updateCheckIntervalSeconds=%{public}d is below Sparkle minimum; clamping to %{public}.0f",
+                    log: logger, type: .info,
+                    intervalSeconds, sparkleMinimumCheckInterval)
+                interval = sparkleMinimumCheckInterval
+            } else {
+                os_log(
+                    "Applying config updateCheckIntervalSeconds=%{public}.0f",
+                    log: logger, type: .info,
+                    interval)
+            }
+            updater.updateCheckInterval = interval
+            didChangeSchedulerSettings = true
+        }
+
+        if didChangeSchedulerSettings {
+            updater.resetUpdateCycle()
+        }
+    }
+
+    var body: some Scene {
+        MenuBarExtra {
+            MenuBarView(
+                configManager: configManager,
+                accountManager: accountManager,
+                apiClient: apiClient,
+                authManager: authManager,
+                tunnelManager: tunnelManager,
+                updater: updaterController.updater,
+                onboardingViewModel: onboardingViewModel
+            )
+        } label: {
+            MenuBarLabel(
+                authManager: authManager,
+                tunnelManager: tunnelManager,
+                onboardingViewModel: onboardingViewModel
+            )
+        }
+        .menuBarExtraStyle(.window)
+
+        // Onboarding Window
+        WindowGroup("Praxis Setup", id: "onboarding") {
+            MacOnboardingFlowView(viewModel: onboardingViewModel)
+                .handlesExternalEvents(preferring: ["onboarding"], allowing: ["onboarding"])
+        }
+        .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 560, height: 520)
+        .windowResizability(.contentSize)
+
+        // Preferences Window
+        WindowGroup("Preferences", id: "preferences") {
+            PreferencesWindow(
+                configManager: configManager,
+                tunnelManager: tunnelManager,
+                accountManager: accountManager,
+                authManager: authManager
+            )
+            .handlesExternalEvents(preferring: ["preferences"], allowing: ["preferences"])
+        }
+        .defaultSize(width: 800, height: 600)
+        .windowResizability(.contentSize)
+        .commands {
+            // Drop unused app and window commands. Leave the Edit menu intact:
+            // Select All, cut, copy, paste, and undo are menu commands, and
+            // removing them disables those shortcuts in every text field.
+            CommandGroup(replacing: .appInfo) {}
+            CommandGroup(replacing: .appSettings) {}
+            CommandGroup(replacing: .appTermination) {}
+            CommandGroup(replacing: .newItem) {}
+            CommandGroup(replacing: .sidebar) {}
+            CommandGroup(replacing: .toolbar) {}
+        }
+    }
+}
+#endif

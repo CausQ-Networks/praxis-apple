@@ -1,19 +1,19 @@
-# [Pangolin](https://pangolin.net) Client for Apple Devices
+# [Praxis](https://praxis.net) Client for Apple Devices
 
-This is the official Pangolin client with GUI for Apple devices. 
+This is the official Praxis client with GUI for Apple devices. 
 
-Pangolin Client is currently available for macOS and iOS/iPadOS devices via the App Store.
+Praxis Client is currently available for macOS and iOS/iPadOS devices via the App Store.
 
 This client can be used with both:
 
-- [Pangolin Cloud](https://app.pangolin.net/auth/login) - Quickest and easiest way to get started using Pangolin.
-- [Self-hosted Pangolin](https://docs.pangolin.net/self-host/quick-install) - Fully self-hosted Community and Enterprise editions of Pangolin.
+- [Praxis Cloud](https://app.praxis.causq.com/auth/login) - Quickest and easiest way to get started using Praxis.
+- [Self-hosted Praxis](https://docs.praxis.causq.com/self-host/quick-install) - Fully self-hosted Community and Enterprise editions of Praxis.
 
 ## Download & Install
 
-- [Pangolin for macOS Installer](https://pangolin.net/downloads/mac) - This is the official page to download the latest installer file for macOS.
-- [Pangolin for iOS/iPadOS](https://pangolin.net/downloads/ios) - This is the official page to download the latest version of the Pangolin app for iOS/iPadOS via the App Store.
-- [All Versions](https://github.com/fosrl/apple/releases) - The releases section of this repository contains release notes and download artifacts for the latest version and all older versions.
+- [Praxis for macOS Installer](https://praxis.net/downloads/mac) - This is the official page to download the latest installer file for macOS.
+- [Praxis for iOS/iPadOS](https://praxis.net/downloads/ios) - This is the official page to download the latest version of the Praxis app for iOS/iPadOS via the App Store.
+- [All Versions](https://github.com/CausQ-Networks/praxis-apple/releases) - The releases section of this repository contains release notes and download artifacts for the latest version and all older versions.
 
 ## Compatibility
 
@@ -22,5 +22,5 @@ This client can be used with both:
 
 ## Documentation
 
-- Documentation for the macOS client can be found at [docs.pangolin.net](https://docs.pangolin.net/manage/clients/install-client#mac).
-- Documentation for the iOS/iPadOS client can be found at [docs.pangolin.net](https://docs.pangolin.net/manage/clients/install-client#ios).
+- Documentation for the macOS client can be found at [docs.praxis.causq.com](https://docs.praxis.causq.com/manage/clients/install-client#mac).
+- Documentation for the iOS/iPadOS client can be found at [docs.praxis.causq.com](https://docs.praxis.causq.com/manage/clients/install-client#ios).

@@ -37,7 +37,7 @@ class NetworkTransitionMonitor {
     private var wasUnsatisfied = false
 
     private let logger: OSLog = {
-        let subsystem = Bundle.main.bundleIdentifier ?? "net.pangolin.Pangolin.PacketTunnel"
+        let subsystem = Bundle.main.bundleIdentifier ?? "com.causq.praxis.PacketTunnel"
         return OSLog(subsystem: subsystem, category: "NetworkTransitionMonitor")
     }()
 
@@ -164,7 +164,7 @@ class NetworkTransitionMonitor {
     }
 
     private static let staticLogger: OSLog = {
-        let subsystem = Bundle.main.bundleIdentifier ?? "net.pangolin.Pangolin.PacketTunnel"
+        let subsystem = Bundle.main.bundleIdentifier ?? "com.causq.praxis.PacketTunnel"
         return OSLog(subsystem: subsystem, category: "NetworkTransitionMonitor")
     }()
 
@@ -188,7 +188,7 @@ class NetworkTransitionMonitor {
         static func currentSystemDNSServers() -> [String] {
             guard
                 let store = SCDynamicStoreCreate(
-                    nil, "net.pangolin.Pangolin.PacketTunnel" as CFString, nil, nil)
+                    nil, "com.causq.praxis.PacketTunnel" as CFString, nil, nil)
             else {
                 return []
             }

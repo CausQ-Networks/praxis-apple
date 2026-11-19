@@ -1,11 +1,11 @@
 import NetworkExtension
 import os.log
-import PangolinGo
+import PraxisGo
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
     private var tunnelAdapter: TunnelAdapter?
     private let logger: OSLog = {
-        let subsystem = Bundle.main.bundleIdentifier ?? "net.pangolin.Pangolin.PacketTunnel"
+        let subsystem = Bundle.main.bundleIdentifier ?? "com.causq.praxis.PacketTunnel"
         let log = OSLog(subsystem: subsystem, category: "PacketTunnelProvider")
         // Log the subsystem being used for debugging
         os_log("PacketTunnelProvider initialized with subsystem: %{public}@", log: log, type: .debug, subsystem)
@@ -225,7 +225,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     }
 
     private func pokeConnection() {
-        if let result = PangolinGo.pokeConnection() {
+        if let result = PraxisGo.pokeConnection() {
             let message = String(cString: result)
             result.deallocate()
             os_log("pokeConnection returned: %{public}@", log: logger, type: .debug, message)
@@ -238,7 +238,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     // unclean shutdown (e.g. a crashed/killed extension process). wake() is a
     // reliable place to run this: it's invoked by the OS after every sleep.
     private func sweepStaleDNS() {
-        if let result = PangolinGo.sweepStaleDNS() {
+        if let result = PraxisGo.sweepStaleDNS() {
             let message = String(cString: result)
             result.deallocate()
             os_log("sweepStaleDNS returned: %{public}@", log: logger, type: .debug, message)
@@ -257,7 +257,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             modePtr.deallocate()
         }
         
-        if let result = PangolinGo.setPowerMode(modePtr) {
+        if let result = PraxisGo.setPowerMode(modePtr) {
             let message = String(cString: result)
             result.deallocate()
             os_log("setPowerMode returned: %{public}@", log: logger, type: .debug, message)

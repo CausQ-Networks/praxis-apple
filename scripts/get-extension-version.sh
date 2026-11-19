@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Usage:
-#   ./check-system-extension-version.sh net.pangolin.Pangolin.PacketTunnel
+#   ./check-system-extension-version.sh com.causq.praxis.PacketTunnel
 #
 # Optional:
 #   ./check-system-extension-version.sh <bundle_id> "<team_id>"

@@ -1,7 +1,7 @@
 import Darwin
 import Foundation
 import NetworkExtension
-import PangolinGo
+import PraxisGo
 import os.log
 
 #if os(iOS)
@@ -77,7 +77,7 @@ private struct IPv6RouteJSON: Codable {
 public class TunnelAdapter {
     private weak var packetTunnelProvider: NEPacketTunnelProvider?
     private let logger: OSLog = {
-        let subsystem = Bundle.main.bundleIdentifier ?? "net.pangolin.Pangolin.PacketTunnel"
+        let subsystem = Bundle.main.bundleIdentifier ?? "com.causq.praxis.PacketTunnel"
         return OSLog(subsystem: subsystem, category: "TunnelAdapter")
     }()
 
@@ -90,7 +90,7 @@ public class TunnelAdapter {
     public init(with packetTunnelProvider: NEPacketTunnelProvider) {
         self.packetTunnelProvider = packetTunnelProvider
         // Set log level for Go logger to debug
-        PangolinGo.setLogLevel(Int32(LogLevel.debug.rawValue))
+        PraxisGo.setLogLevel(Int32(LogLevel.debug.rawValue))
 
         // Get app version from bundle (semver)
         let appVersion =
@@ -98,12 +98,12 @@ public class TunnelAdapter {
         #if os(iOS)
             let agent: String
             if UIDevice.current.userInterfaceIdiom == .pad {
-                agent = "Pangolin iPadOS"
+                agent = "Praxis iPadOS"
             } else {
-                agent = "Pangolin iOS"
+                agent = "Praxis iOS"
             }
         #else
-            let agent = "Pangolin macOS"
+            let agent = "Praxis macOS"
         #endif
 
         // Use the shared function to get the platform-appropriate socket path
@@ -137,7 +137,7 @@ public class TunnelAdapter {
         }
 
         // Call Go initOlm function with JSON configuration
-        if let result = PangolinGo.initOlm(configJSONPtr) {
+        if let result = PraxisGo.initOlm(configJSONPtr) {
             let message = String(cString: result)
             result.deallocate()
             os_log("Go init returned: %{public}@", log: logger, type: .debug, message)
@@ -326,7 +326,7 @@ public class TunnelAdapter {
             let configJSON = String(data: jsonData, encoding: .utf8)
         else {
             let error = NSError(
-                domain: "PangolinGo", code: -1,
+                domain: "PraxisGo", code: -1,
                 userInfo: [NSLocalizedDescriptionKey: "Failed to serialize tunnel config to JSON"])
             os_log("Failed to serialize tunnel config to JSON", log: logger, type: .error)
             completionHandler(error)
@@ -347,7 +347,7 @@ public class TunnelAdapter {
             configJSONPtr.deallocate()
         }
 
-        if let result = PangolinGo.startTunnel(tunnelFD, configJSONPtr) {
+        if let result = PraxisGo.startTunnel(tunnelFD, configJSONPtr) {
             let message = String(cString: result)
             result.deallocate()
             os_log("Go startTunnel returned: %{public}@", log: logger, type: .debug, message)
@@ -355,12 +355,12 @@ public class TunnelAdapter {
             // Check if the Go function returned an error
             if message.lowercased().contains("error") || message.lowercased().contains("fail") {
                 goError = NSError(
-                    domain: "PangolinGo", code: -1, userInfo: [NSLocalizedDescriptionKey: message])
+                    domain: "PraxisGo", code: -1, userInfo: [NSLocalizedDescriptionKey: message])
                 os_log("Go tunnel start failed: %{public}@", log: logger, type: .error, message)
             }
         } else {
             goError = NSError(
-                domain: "PangolinGo", code: -1,
+                domain: "PraxisGo", code: -1,
                 userInfo: [NSLocalizedDescriptionKey: "Failed to call Go startTunnel function"])
             os_log(
                 "Failed to call Go startTunnel function (returned nil)", log: logger, type: .error)
@@ -378,7 +378,7 @@ public class TunnelAdapter {
         os_log("Tunnel started successfully", log: logger, type: .debug)
 
         // Initialize version tracking
-        lastSeenVersion = PangolinGo.getNetworkSettingsVersion()
+        lastSeenVersion = PraxisGo.getNetworkSettingsVersion()
 
         // Start polling for network settings updates
         startSettingsPolling()
@@ -402,7 +402,7 @@ public class TunnelAdapter {
     private func stopGoTunnel() -> Error? {
         os_log("Stopping Go tunnel", log: logger, type: .debug)
         var stopError: Error? = nil
-        if let result = PangolinGo.stopTunnel() {
+        if let result = PraxisGo.stopTunnel() {
             let message = String(cString: result)
             result.deallocate()
             os_log("Go stopTunnel returned: %{public}@", log: logger, type: .debug, message)
@@ -410,11 +410,11 @@ public class TunnelAdapter {
             // Check if the Go function returned an error
             if message.lowercased().contains("error") || message.lowercased().contains("fail") {
                 stopError = NSError(
-                    domain: "PangolinGo", code: -1, userInfo: [NSLocalizedDescriptionKey: message])
+                    domain: "PraxisGo", code: -1, userInfo: [NSLocalizedDescriptionKey: message])
             }
         } else {
             stopError = NSError(
-                domain: "PangolinGo", code: -1,
+                domain: "PraxisGo", code: -1,
                 userInfo: [NSLocalizedDescriptionKey: "Failed to call Go stopTunnel function"])
             os_log(
                 "Failed to call Go stopTunnel function (returned nil)", log: logger, type: .error)
@@ -463,7 +463,7 @@ public class TunnelAdapter {
 
     private func pollNetworkSettings() {
         // Poll the version number first (lightweight)
-        let currentVersion = PangolinGo.getNetworkSettingsVersion()
+        let currentVersion = PraxisGo.getNetworkSettingsVersion()
 
         // Go reports version 0 once its tunnel is no longer running. Whatever we
         // last applied (notably DNS pointing at the now-dead in-tunnel proxy)
@@ -482,7 +482,7 @@ public class TunnelAdapter {
             lastSeenVersion = currentVersion
 
             // Fetch the full network settings
-            guard let result = PangolinGo.getNetworkSettings() else {
+            guard let result = PraxisGo.getNetworkSettings() else {
                 os_log("getNetworkSettings returned nil", log: logger, type: .error)
                 return
             }
@@ -740,7 +740,7 @@ public class TunnelAdapter {
         networkTransitionMonitor = monitor
     }
 
-    /// Pushes observed system DNS servers into olm via PangolinGo.setSystemDNS,
+    /// Pushes observed system DNS servers into olm via PraxisGo.setSystemDNS,
     /// mirroring the existing rebindSocket() call shape below.
     private func reportSystemDNS(_ servers: [String]) {
         guard !servers.isEmpty else { return }
@@ -759,7 +759,7 @@ public class TunnelAdapter {
         }
         defer { jsonPtr.deallocate() }
 
-        guard let result = PangolinGo.setSystemDNS(jsonPtr) else {
+        guard let result = PraxisGo.setSystemDNS(jsonPtr) else {
             os_log("Failed to call Go setSystemDNS function (returned nil)", log: logger, type: .error)
             return
         }
@@ -777,7 +777,7 @@ public class TunnelAdapter {
     private func handleNetworkTransition() {
         os_log("Handling network transition - rebinding socket", log: logger, type: .info)
 
-        guard let result = PangolinGo.rebindSocket() else {
+        guard let result = PraxisGo.rebindSocket() else {
             os_log("rebindSocket returned nil", log: logger, type: .error)
             return
         }
