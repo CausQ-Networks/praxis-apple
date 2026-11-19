@@ -11,9 +11,9 @@
 
 [![Discord](https://img.shields.io/discord/1572896060949659679?logo=discord&style=flat-square&label=Discord)](https://praxis.causq.com/discord/)
 
-This is the official Praxis client with GUI for Apple devices. 
+This is the official Praxis client with GUI for Apple devices (macOS + iOS/iPadOS).
 
-Praxis Client is currently available for macOS and iOS/iPadOS devices via the App Store.
+**Status:** signed installers are not published yet. [GitHub Releases](https://github.com/CausQ-Networks/praxis-apple/releases) has no DMG/IPA assets, and there is no Praxis App Store listing. Building a Network Extension client requires an Apple Developer team and signing certificates.
 
 This client can be used with both:
 
@@ -22,9 +22,9 @@ This client can be used with both:
 
 ## Download & Install
 
-- [Praxis for macOS Installer](https://praxis.causq.com/downloads/mac) - This is the official page to download the latest installer file for macOS.
-- [Praxis for iOS/iPadOS](https://praxis.causq.com/downloads/ios) - This is the official page to download the latest version of the Praxis app for iOS/iPadOS via the App Store.
-- [All Versions](https://github.com/CausQ-Networks/praxis-apple/releases) - The releases section of this repository contains release notes and download artifacts for the latest version and all older versions.
+- [macOS download status](https://praxis.causq.com/downloads/mac) — DMG not available yet
+- [iOS download status](https://praxis.causq.com/downloads/ios) — App Store / TestFlight not published yet
+- [Releases](https://github.com/CausQ-Networks/praxis-apple/releases) — will host DMG/IPA artifacts once signed builds are produced
 
 ## Compatibility
 
