@@ -35,3 +35,19 @@ This client can be used with both:
 
 - Documentation for the macOS client can be found at [docs-praxis.causq.com](https://docs-praxis.causq.com/manage/clients/install-client#mac).
 - Documentation for the iOS/iPadOS client can be found at [docs-praxis.causq.com](https://docs-praxis.causq.com/manage/clients/install-client#ios).
+
+## Publishing a signed macOS DMG
+
+A GitHub Actions workflow [`.github/workflows/macos-release.yml`](.github/workflows/macos-release.yml) builds, signs, packages a DMG, and publishes a GitHub Release.
+
+Add these repository secrets (Settings → Secrets and variables → Actions), then run **Actions → macOS Release → Run workflow**:
+
+| Secret | Purpose |
+| --- | --- |
+| `APPLE_CERTIFICATE_P12_BASE64` | Base64-encoded Developer ID Application `.p12` (Network Extension capable) |
+| `APPLE_CERTIFICATE_PASSWORD` | Password for the `.p12` |
+| `APPLE_TEAM_ID` | Apple Team ID (e.g. `4668XHFAHF`) |
+| `APPLE_API_KEY_ID` / `APPLE_API_ISSUER_ID` / `APPLE_API_KEY_P8_BASE64` | Optional; for notarization via App Store Connect API |
+
+Without those secrets the workflow exits early and no Release asset is created. Local machines without a codesigning identity cannot produce a distributable DMG.
+
