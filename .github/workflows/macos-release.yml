@@ -1,0 +1,129 @@
+name: macOS Release
+
+# Builds and publishes a signed Praxis macOS DMG when Apple signing secrets are present.
+# Required secrets:
+#   APPLE_CERTIFICATE_P12_BASE64  - export .p12 of Developer ID Application cert (base64)
+#   APPLE_CERTIFICATE_PASSWORD   - password for that .p12
+#   APPLE_TEAM_ID                - e.g. 4668XHFAHF
+# Optional (notarization):
+#   APPLE_ID, APPLE_APP_SPECIFIC_PASSWORD, APPLE_TEAM_ID
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag (e.g. 0.1.0)"
+        required: true
+        default: "0.1.0"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check signing secrets
+        env:
+          CERT: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+          PASS: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -z "$CERT" ] || [ -z "$PASS" ] || [ -z "$TEAM" ]; then
+            echo "::error::Missing Apple signing secrets. Set APPLE_CERTIFICATE_P12_BASE64, APPLE_CERTIFICATE_PASSWORD, and APPLE_TEAM_ID on this repo."
+            echo "Network Extension clients cannot be published without a Developer ID / team certificate."
+            exit 1
+          fi
+          echo "Signing secrets present."
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.x"
+
+      - name: Build Go C archive
+        run: make build-macos
+
+      - name: Import certificate
+        env:
+          CERT: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+          PASS: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          CERT_PATH="$RUNNER_TEMP/cert.p12"
+          KEYCHAIN="$RUNNER_TEMP/praxis.keychain-db"
+          echo "$CERT" | base64 --decode > "$CERT_PATH"
+          security create-keychain -p actions "$KEYCHAIN"
+          security default-keychain -s "$KEYCHAIN"
+          security unlock-keychain -p actions "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security import "$CERT_PATH" -P "$PASS" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k actions "$KEYCHAIN"
+          security find-identity -v -p codesigning
+
+      - name: Archive Praxis (macOS)
+        env:
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project Praxis.xcodeproj \
+            -scheme Praxis \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -archivePath "$RUNNER_TEMP/Praxis.xcarchive" \
+            DEVELOPMENT_TEAM="$TEAM" \
+            CODE_SIGN_STYLE=Manual \
+            archive | xcbeautify || xcodebuild \
+            -project Praxis.xcodeproj \
+            -scheme Praxis \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -archivePath "$RUNNER_TEMP/Praxis.xcarchive" \
+            DEVELOPMENT_TEAM="$TEAM" \
+            archive
+
+      - name: Export app
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>developer-id</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/Praxis.xcarchive" \
+            -exportPath "$RUNNER_TEMP/export" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
+          ls -la "$RUNNER_TEMP/export"
+
+      - name: Create DMG
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          APP=$(find "$RUNNER_TEMP/export" -name '*.app' -maxdepth 1 | head -1)
+          test -n "$APP"
+          DMG="$RUNNER_TEMP/Praxis_Installer_${VERSION}.dmg"
+          hdiutil create -volname "Praxis" -srcfolder "$APP" -ov -format UDZO "$DMG"
+          echo "DMG=$DMG" >> "$GITHUB_ENV"
+          ls -lh "$DMG"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          TAG="mac-${VERSION}"
+          gh release create "$TAG" "$DMG" \
+            --title "Praxis for macOS ${VERSION}" \
+            --notes "Signed macOS installer for Praxis (${VERSION}). Requires macOS 14+." \
+            --latest=false
