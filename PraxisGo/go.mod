@@ -3,8 +3,8 @@ module github.com/CausQ-Networks/praxis-apple
 go 1.26.0
 
 require (
-	github.com/CausQ-Networks/praxis-newt v1.19.0
-	github.com/CausQ-Networks/praxis-olm v1.10.2
+	github.com/CausQ-Networks/praxis-newt v1.20.1
+	github.com/CausQ-Networks/praxis-olm v1.10.3
 )
 
 require (
@@ -21,9 +21,9 @@ require (
 	github.com/vishvananda/netns v0.0.5 // indirect
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp v0.0.0-20251113190631-e25ba8c21ef6 // indirect
-	golang.org/x/net v0.60.0 // indirect
+	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sync v0.24.0 // indirect
-	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/sys v0.50.0 // indirect
 	golang.org/x/time v0.12.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	golang.zx2c4.com/wireguard v0.0.0-20250521234502-f333402bd9cb // indirect
@@ -37,3 +37,7 @@ require (
 // replace github.com/CausQ-Networks/praxis-olm => ../../olm
 
 // replace github.com/CausQ-Networks/praxis-newt => ../../newt
+
+replace github.com/CausQ-Networks/praxis-newt => ../../praxis-newt
+
+replace github.com/CausQ-Networks/praxis-olm => ../../praxis-olm
