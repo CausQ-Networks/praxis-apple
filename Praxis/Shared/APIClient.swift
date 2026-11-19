@@ -60,7 +60,7 @@ class APIClient: ObservableObject {
         let platform = "Unknown"
         #endif
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
-        return "pangolin-\(platform)-\(version)"
+        return "praxis-\(platform)-\(version)"
     }
     
     private let session: URLSession

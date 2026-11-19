@@ -1080,7 +1080,7 @@ struct MoreSubmenu: View {
     var body: some View {
         MenuSectionHeader(title: "Support")
         MenuItem(title: "How Praxis Works") {
-            openURL("https://docs.praxis.causq.com/about/how-pangolin-works")
+            openURL("https://docs.praxis.causq.com/about/how-praxis-works")
         }
         MenuItem(title: "Documentation") {
             openURL("https://docs.praxis.causq.com/")
@@ -1088,7 +1088,7 @@ struct MoreSubmenu: View {
 
         MenuSeparator()
 
-        MenuSectionHeader(title: "© \(String(Calendar.current.component(.year, from: Date()))) Fossorial, Inc.")
+        MenuSectionHeader(title: "© \(String(Calendar.current.component(.year, from: Date()))) CausQ, Inc.")
         MenuItem(title: "Terms of Service") {
             openURL("https://praxis.net/tos")
         }

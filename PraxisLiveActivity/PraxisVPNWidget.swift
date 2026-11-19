@@ -35,7 +35,7 @@ struct PraxisVPNWidgetProvider: TimelineProvider {
                 isBusy: false,
                 isOnDemandEnabled: false,
                 organizationName: "Acme Corp",
-                serverHostname: "pangolin.example.com",
+                serverHostname: "praxis.example.com",
                 updatedAt: Date()
             )
         )

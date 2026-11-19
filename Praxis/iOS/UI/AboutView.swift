@@ -11,7 +11,7 @@ struct AboutView: View {
     
     private var copyright: String {
         let year = Calendar.current.component(.year, from: Date())
-        return "© \(year) Fossorial, Inc."
+        return "© \(year) CausQ, Inc."
     }
     
     var body: some View {
@@ -46,7 +46,7 @@ struct AboutView: View {
                         }
                     }
                     
-                    Link(destination: URL(string: "https://docs.praxis.causq.com/about/how-pangolin-works")!) {
+                    Link(destination: URL(string: "https://docs.praxis.causq.com/about/how-praxis-works")!) {
                         HStack {
                             Text("How Praxis Works")
                             Spacer()

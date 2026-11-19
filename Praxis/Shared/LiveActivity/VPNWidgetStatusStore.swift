@@ -33,8 +33,8 @@ struct VPNWidgetStatusSnapshot: Equatable, Sendable {
 
 /// Deep links used by the Home Screen widget to open the app and toggle VPN.
 enum VPNWidgetDeepLink {
-    static let connect = URL(string: "pangolin://vpn/connect")!
-    static let disconnect = URL(string: "pangolin://vpn/disconnect")!
+    static let connect = URL(string: "praxis://vpn/connect")!
+    static let disconnect = URL(string: "praxis://vpn/disconnect")!
 
     enum Action: String {
         case connect
@@ -43,8 +43,8 @@ enum VPNWidgetDeepLink {
 
     static func action(from url: URL) -> Action? {
         guard url.scheme == "praxis" else { return nil }
-        // pangolin://vpn/connect  → host=vpn, path=/connect
-        // pangolin:vpn/connect    → path variants
+        // praxis://vpn/connect  → host=vpn, path=/connect
+        // praxis:vpn/connect    → path variants
         let host = url.host?.lowercased()
         let path = url.path.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         if host == "vpn" {

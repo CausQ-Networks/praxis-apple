@@ -26,12 +26,12 @@ class ConfigManager: ObservableObject {
         let appSupport = FileManager.default.urls(
             for: .applicationSupportDirectory, in: .userDomainMask
         ).first!
-        let pangolinDir = appSupport.appendingPathComponent("Praxis", isDirectory: true)
+        let praxisDir = appSupport.appendingPathComponent("Praxis", isDirectory: true)
 
         // Create directory if it doesn't exist
-        try? FileManager.default.createDirectory(at: pangolinDir, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(at: praxisDir, withIntermediateDirectories: true)
 
-        self.configPath = pangolinDir.appendingPathComponent("pangolin.json")
+        self.configPath = praxisDir.appendingPathComponent("praxis.json")
         self.config = load()
         ensureDNSDefaults()
     }

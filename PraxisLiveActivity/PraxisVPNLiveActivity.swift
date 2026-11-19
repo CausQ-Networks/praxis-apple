@@ -8,7 +8,7 @@ struct PraxisVPNLiveActivity: Widget {
         ActivityConfiguration(for: PraxisVPNAttributes.self) { context in
             LiveActivityContentView(context: context)
                 .activitySystemActionForegroundColor(.primary)
-                .widgetURL(URL(string: "pangolin://"))
+                .widgetURL(URL(string: "praxis://"))
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
@@ -38,7 +38,7 @@ struct PraxisVPNLiveActivity: Widget {
                 PraxisLiveActivityLogo(size: Self.islandLogoSize)
                     .frame(width: Self.islandSlotSize, height: Self.islandSlotSize)
             }
-            .widgetURL(URL(string: "pangolin://"))
+            .widgetURL(URL(string: "praxis://"))
         }
         .supplementalActivityFamilies([.small])
     }

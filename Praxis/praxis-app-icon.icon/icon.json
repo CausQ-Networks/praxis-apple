@@ -19,8 +19,8 @@
       "layers" : [
         {
           "glass" : false,
-          "image-name" : "pangolin_orange.svg",
-          "name" : "pangolin_orange",
+          "image-name" : "praxis_orange.svg",
+          "name" : "praxis_orange",
           "position" : {
             "scale" : 0.82,
             "translation-in-points" : [

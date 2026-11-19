@@ -5,7 +5,7 @@
 set -e
 
 BUNDLE_ID="com.causq.praxis"
-CONFIG_FILE="pangolin.json"
+CONFIG_FILE="praxis.json"
 
 DEFAULT_CONFIG='{
   "dnsOverrideEnabled": true,

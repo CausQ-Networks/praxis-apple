@@ -443,7 +443,7 @@ public class TunnelAdapter {
             "Starting network settings polling (interval: %.1f seconds)", log: logger, type: .debug,
             pollInterval)
 
-        let queue = DispatchQueue(label: "com.pangolin.tunnel.settings-poll", qos: .utility)
+        let queue = DispatchQueue(label: "com.praxis.tunnel.settings-poll", qos: .utility)
         let timer = DispatchSource.makeTimerSource(queue: queue)
         timer.schedule(deadline: .now() + pollInterval, repeating: pollInterval)
         timer.setEventHandler { [weak self] in

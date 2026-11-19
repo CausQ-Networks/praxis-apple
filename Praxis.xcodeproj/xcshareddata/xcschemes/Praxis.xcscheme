@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "90BC22B32EBC6C1D0072B44A"
-               BuildableName = "Pangolin.app"
-               BlueprintName = "Pangolin"
-               ReferencedContainer = "container:Pangolin.xcodeproj">
+               BuildableName = "Praxis.app"
+               BlueprintName = "Praxis"
+               ReferencedContainer = "container:Praxis.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "90BC22B32EBC6C1D0072B44A"
-            BuildableName = "Pangolin.app"
-            BlueprintName = "Pangolin"
-            ReferencedContainer = "container:Pangolin.xcodeproj">
+            BuildableName = "Praxis.app"
+            BlueprintName = "Praxis"
+            ReferencedContainer = "container:Praxis.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +62,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "90BC22B32EBC6C1D0072B44A"
-            BuildableName = "Pangolin.app"
-            BlueprintName = "Pangolin"
-            ReferencedContainer = "container:Pangolin.xcodeproj">
+            BuildableName = "Praxis.app"
+            BlueprintName = "Praxis"
+            ReferencedContainer = "container:Praxis.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

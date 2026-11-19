@@ -218,7 +218,7 @@ struct PraxisApp: App {
         _onboardingViewModel = StateObject(wrappedValue: onboardingVM)
     }
 
-    /// Applies present pangolin.json update keys to Sparkle. Absent keys leave Sparkle prefs alone.
+    /// Applies present praxis.json update keys to Sparkle. Absent keys leave Sparkle prefs alone.
     private static func applyUpdateSettings(from configManager: ConfigManager, to updater: SPUUpdater) {
         var didChangeSchedulerSettings = false
 

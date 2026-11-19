@@ -640,7 +640,7 @@ struct HomeTabView: View {
                             .buttonStyle(.plain)
                         }
                         
-                        if let docsURL = URL(string: "https://docs.praxis.causq.com/about/how-pangolin-works") {
+                        if let docsURL = URL(string: "https://docs.praxis.causq.com/about/how-praxis-works") {
                             Link(destination: docsURL) {
                                 HStack {
                                     Text("How Praxis Works")

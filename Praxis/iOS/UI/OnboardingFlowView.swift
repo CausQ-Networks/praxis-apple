@@ -208,7 +208,7 @@ private struct OnboardingWelcomePage: View {
             .padding(.top, 4)
 
             // Footer help text (kept above the page indicator)
-            if let docsURL = URL(string: "https://docs.praxis.causq.com/about/how-pangolin-works") {
+            if let docsURL = URL(string: "https://docs.praxis.causq.com/about/how-praxis-works") {
                 HStack(spacing: 4) {
                     Text("New to Praxis?")
                         .font(.caption)

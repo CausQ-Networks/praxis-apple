@@ -1,6 +1,6 @@
 {
   "diskImage" : {
-    "appleID" : "numbat@fossorial.io",
+    "appleID" : "security@causq.com",
     "autoopen" : true,
     "background" : {
       "layoutObjects" : [
@@ -18,14 +18,14 @@
     ],
     "nameFontSize" : 12,
     "statusBarVisible" : false,
-    "suggestedDiskImageName" : "Pangolin_Installer_0.8.4.dmg",
+    "suggestedDiskImageName" : "Praxis_Installer_0.8.4.dmg",
     "teamID" : "4668XHFAHF",
     "toolbarVisible" : false,
     "uid" : "knbwdghzqp",
     "validationScheme" : 2,
     "viewLayout" : 0,
     "volumeIcon" : "volumeIcon",
-    "volumeName" : "Pangolin Installer",
+    "volumeName" : "Praxis Installer",
     "volumeSize" : 0,
     "volumeSizeOption" : "Automatic",
     "windowContentHeight" : 360,
@@ -39,12 +39,12 @@
         "relativeFilePath" : "..\/..\/..\/..\/Applications"
       },
       {
-        "filePath" : "\/Users\/miloschwartz\/Downloads\/Pangolin\/Pangolin.app",
+        "filePath" : "\/Users\/miloschwartz\/Downloads\/Praxis\/Praxis.app",
         "iconSize" : 100,
         "invisible" : false,
         "isAnAlias" : false,
         "location" : "{168, 180}",
-        "relativeFilePath" : "..\/..\/Downloads\/Pangolin\/Pangolin.app"
+        "relativeFilePath" : "..\/..\/Downloads\/Praxis\/Praxis.app"
       }
     ],
     "windowContentWidth" : 600,

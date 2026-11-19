@@ -5,9 +5,9 @@ import Security
 class SecretManager: ObservableObject {
     private let service: String = {
         #if os(iOS)
-        return "Praxis: pangolin-iOS"
+        return "Praxis: praxis-iOS"
         #elseif os(macOS)
-        return "Praxis: pangolin-macOS"
+        return "Praxis: praxis-macOS"
         #else
         return "Praxis"
         #endif

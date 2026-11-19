@@ -63,6 +63,6 @@ tuist/Derived/
 GoogleService-Info.plist
 
 ## Go build artifacts (generated libraries and headers)
-PangolinGo/libpangolin*.a
-PangolinGo/libpangolin*.h
+PraxisGo/libpraxis*.a
+PraxisGo/libpraxis*.h
 wireguard-apple/

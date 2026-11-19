@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "pangolin-mark.png",
+      "filename" : "praxis-mark.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "pangolin-mark@2x.png",
+      "filename" : "praxis-mark@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "pangolin-mark@3x.png",
+      "filename" : "praxis-mark@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }

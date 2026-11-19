@@ -49,8 +49,8 @@ enum SandboxMigration {
             migrationAttempted = true
         }
 
-        // Migrate pangolin.json
-        let configFile = "pangolin.json"
+        // Migrate praxis.json
+        let configFile = "praxis.json"
         if migrateFile(
             fileName: configFile,
             from: sandboxedPath,

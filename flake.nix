@@ -13,7 +13,7 @@
 
       perSystem = {pkgs, ...}: {
         devShells.default = pkgs.mkShellNoCC {
-          name = "pangolin-apple-shell";
+          name = "praxis-apple-shell";
           packages = let
             go = pkgs.go.overrideAttrs (o: {
               patches = [
